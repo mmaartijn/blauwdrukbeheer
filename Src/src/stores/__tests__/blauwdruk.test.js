@@ -284,37 +284,6 @@ describe('loadAll', () => {
     expect(urls).toContain('/data/leeruitkomsten.json')
   })
 
-  it('gooit een fout wanneer een fetch mislukt', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
-    const store = useBlauwdrukStore()
-    await expect(store.loadAll()).rejects.toThrow()
-  })
-})
-
-// ── loadAll ──────────────────────────────────────────────────────────────────
-
-describe('loadAll', () => {
-  it('laadt alle data in de store-refs', async () => {
-    const periodes = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
-    const portefeuilles = [{ id: 'db', label: 'Databases' }]
-    const keywords = [{ id: 'kw-1', naam: 'SQL' }]
-    const leeruitkomsten = [{ id: 'lu-1', naam: 'Full Stack' }]
-
-    mockFetch
-      .mockResolvedValueOnce({ json: () => Promise.resolve(periodes) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(portefeuilles) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(keywords) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(leeruitkomsten) })
-
-    const store = useBlauwdrukStore()
-    await store.loadAll()
-
-    expect(store.periodes).toEqual(periodes)
-    expect(store.portefeuilles).toEqual(portefeuilles)
-    expect(store.keywords).toEqual(keywords)
-    expect(store.leeruitkomsten).toEqual(leeruitkomsten)
-  })
-
   it('zet hasError op true wanneer een fetch mislukt', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
     const store = useBlauwdrukStore()
