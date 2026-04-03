@@ -284,11 +284,13 @@ describe('loadAll', () => {
     expect(urls).toContain('/data/leeruitkomsten.json')
   })
 
-  it('gooit een fout wanneer een fetch mislukt', async () => {
+  it('zet hasError op true wanneer een fetch mislukt', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
     const store = useBlauwdrukStore()
-    await expect(store.loadAll()).rejects.toThrow()
+    await store.loadAll()
+    expect(store.hasError).toBe(true)
   })
+})
 
 // ── generateId ───────────────────────────────────────────────────────────────
 
