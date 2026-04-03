@@ -15,7 +15,7 @@ Bronbestanden staan in `/Bronbestanden`. Geïmporteerde en beheerde data staat i
 - **Frontend:** Vue 3 (Composition API) + Vite
 - **State management:** Pinia
 - **Routing:** Vue Router
-- **Styling:** TailwindCSS (of vergelijkbaar modern utility-framework)
+- **Styling:** TailwindCSS v4 (via `@tailwindcss/vite` plugin) — gebruik altijd `@reference "tailwindcss";` als eerste regel in elk `<style>`-blok dat `@apply` gebruikt
 - **Data:** JSON-bestanden in `/Data`, geen aparte backend/database
 - **Taal UI:** Nederlands
 
@@ -37,6 +37,7 @@ Zie `/Data` voor de actuele bestanden. Hoofdentiteiten:
 1. **Keywords beheren** – toevoegen/bewerken/verwijderen van keywords; per keyword: naam, Bloom-niveau (1–6), toelichting, periode, portefeuille
 2. **Leeruitkomsten beheren** – CRUD voor leeruitkomsten met alle velden uit de bronbestanden
 3. **Overzicht/matrix** – visuele 4x4 Jaar × Blok matrix met colspan, opgedeeld en kleurgecodeerd in portefeuilles
+4. **Modulebeschrijvingen** – overzichtspagina (`/modules`) en detailpagina (`/modules/:periodeId`) met leeruitkomsten, toetsmatrijs en onderwerpen per portefeuille; print-klaar via `@media print`; volledig bewerkbaar via rechtsklik-contextmenu (leeruitkomsten, modulenaam, keywords)
 
 ## Werkwijze
 - **Vraag bij onduidelijkheden altijd aan de gebruiker wat hij wil.** Maak geen aannames over scope of ontwerp.
@@ -44,6 +45,7 @@ Zie `/Data` voor de actuele bestanden. Hoofdentiteiten:
   - Houd `CLAUDE.md` up-to-date indien projectregels of de stack veranderen.
   - Vink in `STATUS.md` altijd netjes af wat je zojuist hebt voltooid (en voeg scopes toe als dat nodig is).
   - Loopt er iets stuk of is er een belangrijke les geleerd qua architectuur/interpretatie? Gelijk en zonder pardon vastleggen in `FOUTEN.md` ter herinnering.
+- **Voer altijd `npm run test` en `npm run lint:check` uit (vanuit `/Src`) vóórdat je code commit.** Commit nooit als er testfouten of lint-errors zijn.
 - Lees altijd bestaande bestanden vóór je ze aanpast.
 - Maak geen extra bestanden tenzij strikt noodzakelijk.
 - Voeg geen features toe die niet gevraagd zijn.
