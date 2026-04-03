@@ -82,38 +82,18 @@
 
 <script setup>
 import { reactive, computed } from 'vue'
+import { bloomLevels, bloomActiveClass } from '@/composables/useBloom'
 
 const props = defineProps({
-  keyword: Object,
-  portefeuilles: Array,
-  periodes: Array,
+  keyword:       { type: Object, required: true },
+  portefeuilles: { type: Array,  required: true },
+  periodes:      { type: Array,  required: true },
 })
 
 const emit = defineEmits(['save', 'delete', 'close'])
 
 const form = reactive({ ...props.keyword })
 const isNew = computed(() => !props.keyword?.naam)
-
-const bloomLevels = [
-  { level: 1, label: 'Onthouden' },
-  { level: 2, label: 'Begrijpen' },
-  { level: 3, label: 'Toepassen' },
-  { level: 4, label: 'Analyseren' },
-  { level: 5, label: 'Evalueren' },
-  { level: 6, label: 'Creëren' },
-]
-
-function bloomActiveClass(level) {
-  const classes = {
-    1: 'bg-gray-200 border-gray-400 text-gray-800',
-    2: 'bg-blue-100 border-blue-400 text-blue-900',
-    3: 'bg-green-100 border-green-400 text-green-900',
-    4: 'bg-yellow-100 border-yellow-400 text-yellow-900',
-    5: 'bg-orange-100 border-orange-400 text-orange-900',
-    6: 'bg-red-100 border-red-400 text-red-900',
-  }
-  return classes[level] ?? ''
-}
 
 function submit() {
   emit('save', { ...form })

@@ -9,11 +9,11 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/matrix' },
-    { path: '/matrix', component: MatrixView, name: 'matrix' },
-    { path: '/leeruitkomsten', component: LeeruitkomstenView, name: 'leeruitkomsten' },
-    { path: '/keywords', component: KeywordsView, name: 'keywords' },
-    { path: '/modules', component: ModulesView, name: 'modules' },
-    { path: '/modules/:periodeId', component: ModuleDetailView, name: 'module-detail' },
+    { path: '/matrix',              component: MatrixView,        name: 'matrix',        meta: { title: 'Jaar × Blok matrix' } },
+    { path: '/leeruitkomsten',      component: LeeruitkomstenView, name: 'leeruitkomsten', meta: { title: 'Leeruitkomsten' } },
+    { path: '/keywords',            component: KeywordsView,      name: 'keywords',      meta: { title: 'Keywords' } },
+    { path: '/modules',             component: ModulesView,       name: 'modules',       meta: { title: 'Modules' } },
+    { path: '/modules/:periodeId',  component: ModuleDetailView,  name: 'module-detail', meta: { title: 'Modulebeschrijving' } },
   ],
 })
 
