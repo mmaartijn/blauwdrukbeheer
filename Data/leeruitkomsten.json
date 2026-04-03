@@ -6,11 +6,27 @@
     "naam": "Zelfstandig automatiseren middels software",
     "ec": 15,
     "omschrijving": "Je automatiseert een deel van een gegeven bedrijfsproces waarbij je op basis van een aangereikt model programmacode oplevert. Je evalueert hierbij je werkwijze zodat je jezelf professioneel kan ontwikkelen.\n\nJe maakt applicatielogica die met een bestaande database communiceert om data te tonen en te bewerken. Je bekijkt hierbij de oplossingen van je medestudenten en geeft daar feedback op.\n\nJe denkt kritisch na over het gebruik van jouw software en test de werking van jouw product onder verschillende omstandigheden. Daarbij gebruik je ook ontvangen feedback om je software te verbeteren.",
-    "eindkwalificaties": ["Software realiseren"],
-    "deelberoepsprestaties": ["Software realiseren"],
-    "deelstappen": ["Model interpreteren", "Coderen", "Testuitvoer", "Procesreflectie"],
-    "kennis_vaardigheden": ["Programmeren", "Database gebruiken / Datamodificatie", "Ontwerp/Model interpreteren"],
-    "modellen_theorieen": ["Reflectiemodel", "Feedback geven en ontvangen"],
+    "eindkwalificaties": [
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software realiseren"
+    ],
+    "deelstappen": [
+      "Model interpreteren",
+      "Coderen",
+      "Testuitvoer",
+      "Procesreflectie"
+    ],
+    "kennis_vaardigheden": [
+      "Programmeren",
+      "Database gebruiken / Datamodificatie",
+      "Ontwerp/Model interpreteren"
+    ],
+    "modellen_theorieen": [
+      "Reflectiemodel",
+      "Feedback geven en ontvangen"
+    ],
     "beroepscontext": "Autonoom en verantwoordelijk. Automatiseren van een deel van een gegeven bedrijfsproces. Gegeven model vertalen naar programmacode."
   },
   {
@@ -20,10 +36,17 @@
     "naam": "Object-georiënteerd programmeren",
     "ec": 15,
     "omschrijving": "Je bouwt een monolithische object-georiënteerde applicatie op basis van aangereikte ontwerpdiagrammen. Je programmeert aan de hand van geldende programmeerstandaarden en documenteert je code. Je test de werking van jouw applicatie onder verschillende omstandigheden.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren"],
-    "deelberoepsprestaties": ["Software realiseren"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software realiseren"
+    ],
     "deelstappen": [],
-    "kennis_vaardigheden": ["Ontwerpstandaarden"],
+    "kennis_vaardigheden": [
+      "Ontwerpstandaarden"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": "Individueel."
   },
@@ -32,14 +55,26 @@
     "periode": "P1.2",
     "module": "Module 2 – Dataontwerp en OO programmeren (15 EC)",
     "naam": "Samenwerken en communiceren bij het ontwikkelen van software",
-    "ec": null,
+    "ec": "",
     "omschrijving": "Je ontwikkelt met een groep medestudenten een softwareoplossing op basis van instructies van een projectdocent. Je herkent conflicten binnen de groep en geeft aan wat je kan doen om deze conflicten op te lossen. Je geeft je groepsleden feedback aan de hand van feedbackmodellen. Je reflecteert op je eigen gedrag in de groep.",
-    "eindkwalificaties": ["Projectmatig werken", "Professioneel handelen"],
+    "eindkwalificaties": [
+      "Projectmatig werken",
+      "Professioneel handelen"
+    ],
     "deelberoepsprestaties": [],
-    "deelstappen": ["Eigen sterktes en zwaktes in kaart brengen", "Dat toepassen in de praktijk"],
-    "kennis_vaardigheden": ["Vergadertechnieken"],
-    "modellen_theorieen": ["Reflectie (STAR)", "Gedrag/Feedback (4G)"],
-    "beroepscontext": ""
+    "deelstappen": [
+      "Eigen sterktes en zwaktes in kaart brengen",
+      "Dat toepassen in de praktijk"
+    ],
+    "kennis_vaardigheden": [
+      "Vergadertechnieken"
+    ],
+    "modellen_theorieen": [
+      "Reflectie (STAR)",
+      "Gedrag/Feedback (4G)"
+    ],
+    "beroepscontext": "",
+    "toetsmatrijs": []
   },
   {
     "id": "lu-p12-3",
@@ -48,10 +83,23 @@
     "naam": "Dataontwerp en -realisatie",
     "ec": null,
     "omschrijving": "Je herkent de data-aspecten van een gegeven casus en vertaalt deze naar een efficiënt relationeel databasemodel. Je creëert een database door dit model te implementeren. Uit de gegeven casus identificeer je nuttige informatiebehoeften vanuit verschillende gebruikersinteracties. Hierbij houd je rekening met privacy- en securityaspecten.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren"],
-    "deelberoepsprestaties": ["Software realiseren"],
-    "deelstappen": ["Data aspecten uit een casus analyseren", "Database ontwerpen", "Database implementeren"],
-    "kennis_vaardigheden": ["Databasemodellen", "AVG", "Security"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software realiseren"
+    ],
+    "deelstappen": [
+      "Data aspecten uit een casus analyseren",
+      "Database ontwerpen",
+      "Database implementeren"
+    ],
+    "kennis_vaardigheden": [
+      "Databasemodellen",
+      "AVG",
+      "Security"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": "Relationele database."
   },
@@ -62,11 +110,24 @@
     "naam": "Software ontwerpen",
     "ec": null,
     "omschrijving": "Je analyseert een aangereikt automatiseringsvraagstuk waarbij je de aanleiding, context, en functionele en systeemeisen helder en eenduidig in kaart brengt. Je vertaalt de gestelde eisen naar functioneel ontwerp en maakt ook een technisch ontwerp middels diagrammen voor een OO client-server applicatie met overerving en polymorfisme.",
-    "eindkwalificaties": ["Software ontwerpen"],
-    "deelberoepsprestaties": ["Software ontwerpen"],
-    "deelstappen": ["Requirementsanalyse", "Databaseontwerp", "Technisch ontwerp"],
+    "eindkwalificaties": [
+      "Software ontwerpen"
+    ],
+    "deelberoepsprestaties": [
+      "Software ontwerpen"
+    ],
+    "deelstappen": [
+      "Requirementsanalyse",
+      "Databaseontwerp",
+      "Technisch ontwerp"
+    ],
     "kennis_vaardigheden": [],
-    "modellen_theorieen": ["Use case diagrammen", "Klassediagrammen", "Databasediagrammen", "Argumentatiemodel"],
+    "modellen_theorieen": [
+      "Use case diagrammen",
+      "Klassediagrammen",
+      "Databasediagrammen",
+      "Argumentatiemodel"
+    ],
     "beroepscontext": "Functioneel ontwerp gegeven, 'hoe' moet ontworpen worden. Object-georiënteerd op basaal niveau."
   },
   {
@@ -76,10 +137,24 @@
     "naam": "Software realiseren",
     "ec": null,
     "omschrijving": "Op basis van een functioneel en technisch ontwerp realiseer je object-georiënteerde client-server software, met overerving en polymorfisme, waarbij je gebruik maakt van ORM voor het creëren en benaderen van je relationele database. Je zorgt dat de logica en front-end functionaliteit automatisch getest is.",
-    "eindkwalificaties": ["Software realiseren"],
-    "deelberoepsprestaties": ["Software realiseren"],
-    "deelstappen": ["Programmacode schrijven", "Databasecode schrijven", "Software deployen", "Software testen"],
-    "kennis_vaardigheden": ["OO programmacode", "Databasecode", "Git", "Deployen"],
+    "eindkwalificaties": [
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software realiseren"
+    ],
+    "deelstappen": [
+      "Programmacode schrijven",
+      "Databasecode schrijven",
+      "Software deployen",
+      "Software testen"
+    ],
+    "kennis_vaardigheden": [
+      "OO programmacode",
+      "Databasecode",
+      "Git",
+      "Deployen"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": "Software wordt getest volgens gegeven plan."
   },
@@ -90,11 +165,25 @@
     "naam": "Projectmatig werken",
     "ec": null,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing waarbij je je houdt aan een vooraf gedefinieerde fasering en projectmethodiek. Je bent verantwoordelijk voor een deel van de te realiseren software en zet gedistribueerd configuratiebeheer in.",
-    "eindkwalificaties": ["Projectmanagement"],
-    "deelberoepsprestaties": ["Projectmatig werken"],
-    "deelstappen": ["Plan van aanpak", "Voortgangsrapportage", "Projectafronding"],
-    "kennis_vaardigheden": ["Conflicthantering"],
-    "modellen_theorieen": ["Projectmethodiek", "Teamrollen theorie", "Feedback + reflectie"],
+    "eindkwalificaties": [
+      "Projectmanagement"
+    ],
+    "deelberoepsprestaties": [
+      "Projectmatig werken"
+    ],
+    "deelstappen": [
+      "Plan van aanpak",
+      "Voortgangsrapportage",
+      "Projectafronding"
+    ],
+    "kennis_vaardigheden": [
+      "Conflicthantering"
+    ],
+    "modellen_theorieen": [
+      "Projectmethodiek",
+      "Teamrollen theorie",
+      "Feedback + reflectie"
+    ],
     "beroepscontext": "Werkplanning op basis van door school gestelde fasering."
   },
   {
@@ -104,11 +193,25 @@
     "naam": "Projectmatig software ontwikkelen",
     "ec": 15,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing voor een externe klant. Je interviewt de klant en maakt een functioneel ontwerp. Je ontwikkelt, integreert en levert je software op aan de hand van een OTAP-ontwikkelstraat.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren", "Software testen", "Analyseren/adviseren", "Projectmanagement"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren",
+      "Software testen",
+      "Analyseren/adviseren",
+      "Projectmanagement"
+    ],
     "deelberoepsprestaties": [],
     "deelstappen": [],
-    "kennis_vaardigheden": ["Scrum/Kanban", "OTAP", "Value Sensitive Design", "Usability"],
-    "modellen_theorieen": ["Interviewtechnieken", "Klantgerichte communicatie"],
+    "kennis_vaardigheden": [
+      "Scrum/Kanban",
+      "OTAP",
+      "Value Sensitive Design",
+      "Usability"
+    ],
+    "modellen_theorieen": [
+      "Interviewtechnieken",
+      "Klantgerichte communicatie"
+    ],
     "beroepscontext": "Web-based applicatie. Externe klant (bij voorkeur niet-commercieel)."
   },
   {
@@ -118,10 +221,27 @@
     "naam": "Software testen",
     "ec": 5,
     "omschrijving": "Aan de hand van de wensen en eisen voor een applicatie maak je een Engelstalig testplan. Je schrijft een testspecificatie en implementeert een set van testen. Je voert de testen uit, rapporteert het resultaat en verbindt conclusies aan de uitkomst.",
-    "eindkwalificaties": ["Software testen"],
-    "deelberoepsprestaties": ["Testplan", "Testspecificatie", "Testscripts", "Testrapportages"],
-    "deelstappen": ["Testplan maken", "Testspecificatie schrijven", "Testscripts implementeren", "Testen uitvoeren", "Testrapportages schrijven"],
-    "kennis_vaardigheden": ["Testvormen", "Requirements Analyse", "Docker"],
+    "eindkwalificaties": [
+      "Software testen"
+    ],
+    "deelberoepsprestaties": [
+      "Testplan",
+      "Testspecificatie",
+      "Testscripts",
+      "Testrapportages"
+    ],
+    "deelstappen": [
+      "Testplan maken",
+      "Testspecificatie schrijven",
+      "Testscripts implementeren",
+      "Testen uitvoeren",
+      "Testrapportages schrijven"
+    ],
+    "kennis_vaardigheden": [
+      "Testvormen",
+      "Requirements Analyse",
+      "Docker"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": "Onafhankelijk getoetst."
   },
@@ -132,11 +252,21 @@
     "naam": "Full stack development",
     "ec": 10,
     "omschrijving": "Je realiseert software op basis van een functioneel en technisch ontwerp. Je ontwikkelt en documenteert programmacode in het Engels. Je realiseert je software in een client/server architectuur en maakt hierbij gebruik van een geoptimaliseerde relationele database.",
-    "eindkwalificaties": ["Software realiseren"],
+    "eindkwalificaties": [
+      "Software realiseren"
+    ],
     "deelberoepsprestaties": [],
     "deelstappen": [],
-    "kennis_vaardigheden": ["Refactoring", "Indexes", "Stored procedures", "ACID"],
-    "modellen_theorieen": ["Client-server applicatie", "Eenvoudige REST API"],
+    "kennis_vaardigheden": [
+      "Refactoring",
+      "Indexes",
+      "Stored procedures",
+      "ACID"
+    ],
+    "modellen_theorieen": [
+      "Client-server applicatie",
+      "Eenvoudige REST API"
+    ],
     "beroepscontext": "Lage complexiteit in design patterns.",
     "toetsmatrijs": [
       {
@@ -231,11 +361,24 @@
     "naam": "Architectuur op meso–macroniveau",
     "ec": 4,
     "omschrijving": "Je voert bij een beroepsspecifiek Engelssprekend bedrijf onderzoek uit naar het gebruikte applicatielandschap. Je analyseert het applicatielandschap op basis van ISO 25010. Je stelt een advies op waarbij je aandacht hebt voor refactoringskansen en draagt dit in het Engels schriftelijk over.",
-    "eindkwalificaties": ["Analyseren/adviseren"],
-    "deelberoepsprestaties": ["Analyseren", "Adviseren"],
-    "deelstappen": ["Onderzoek"],
-    "kennis_vaardigheden": ["Modulair denken", "Onderzoeksvaardigheden"],
-    "modellen_theorieen": ["SDG's", "ISO 25010"],
+    "eindkwalificaties": [
+      "Analyseren/adviseren"
+    ],
+    "deelberoepsprestaties": [
+      "Analyseren",
+      "Adviseren"
+    ],
+    "deelstappen": [
+      "Onderzoek"
+    ],
+    "kennis_vaardigheden": [
+      "Modulair denken",
+      "Onderzoeksvaardigheden"
+    ],
+    "modellen_theorieen": [
+      "SDG's",
+      "ISO 25010"
+    ],
     "beroepscontext": ""
   },
   {
@@ -245,11 +388,25 @@
     "naam": "Architectuur op micro–mesoniveau",
     "ec": 11,
     "omschrijving": "Je ontwerpt en realiseert een complex objectgeoriënteerd softwaresysteem met als doel die te integreren in een bestaand groter applicatielandschap. Je maakt gebruik van gevestigde standaarden en ontwerpprincipes. Je beargumenteert en documenteert in het Engels jouw ontwerp- en implementatiekeuzes.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren"],
-    "deelberoepsprestaties": ["Software ontwerpen", "Software realiseren"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software ontwerpen",
+      "Software realiseren"
+    ],
     "deelstappen": [],
-    "kennis_vaardigheden": ["Design Patterns", "Modulariteitsprincipes", "Code Smells", "Refactoring"],
-    "modellen_theorieen": ["MVC/MVVM", "Interfaces, Overerving, Polymorfisme"],
+    "kennis_vaardigheden": [
+      "Design Patterns",
+      "Modulariteitsprincipes",
+      "Code Smells",
+      "Refactoring"
+    ],
+    "modellen_theorieen": [
+      "MVC/MVVM",
+      "Interfaces, Overerving, Polymorfisme"
+    ],
     "beroepscontext": "OO programmeertaal (C# of Java)."
   },
   {
@@ -259,7 +416,14 @@
     "naam": "Stage",
     "ec": 30,
     "omschrijving": "In de stage laat je zien dat je de kennis, vaardigheden en houdingsaspecten hebt om als collega binnen een organisatie te functioneren. Je werkt aan een softwareoplossing voor een automatiseringsvraagstuk verstrekt door de stageorganisatie.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren", "Software testen", "Analyseren/adviseren", "Projectmanagement", "Professioneel handelen"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren",
+      "Software testen",
+      "Analyseren/adviseren",
+      "Projectmanagement",
+      "Professioneel handelen"
+    ],
     "deelberoepsprestaties": [],
     "deelstappen": [],
     "kennis_vaardigheden": [],
@@ -273,10 +437,19 @@
     "naam": "Modulair opgebouwde software realiseren",
     "ec": 6,
     "omschrijving": "Je realiseert een softwareoplossing die bestaat uit meerdere onafhankelijke modules zodat deze modules ieder onafhankelijk van elkaar op- of afgeschaald kunnen worden. Je borgt de kwaliteit door automatische tests via CI-technieken en zet CD in om automatisch omgevingen bij te werken.",
-    "eindkwalificaties": ["Software realiseren"],
-    "deelberoepsprestaties": ["Software ontwerpen", "Software realiseren"],
-    "deelstappen": ["Software ontwikkelen"],
-    "kennis_vaardigheden": ["Containerization"],
+    "eindkwalificaties": [
+      "Software realiseren"
+    ],
+    "deelberoepsprestaties": [
+      "Software ontwerpen",
+      "Software realiseren"
+    ],
+    "deelstappen": [
+      "Software ontwikkelen"
+    ],
+    "kennis_vaardigheden": [
+      "Containerization"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": ""
   },
@@ -287,11 +460,29 @@
     "naam": "Projectmatig software ontwikkelen vanuit de DevOps gedachte",
     "ec": 6,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing waarbij je werkt volgens een agile projectmethodiek en devops-principes. Je projectgroep is een zelforganiserend team dat volledig verantwoordelijk is voor de gebruikersbehoefte.",
-    "eindkwalificaties": ["Projectmanagement"],
-    "deelberoepsprestaties": ["Projectmanagement", "Software ontwerpen", "Software realiseren", "Software testen", "Software beheren"],
-    "deelstappen": ["CI/CD straat opzetten", "Wensen vertalen naar product-increments", "Software ontwikkelen"],
-    "kennis_vaardigheden": ["DevOps", "Containerization", "Kanban"],
-    "modellen_theorieen": ["Retrospective"],
+    "eindkwalificaties": [
+      "Projectmanagement"
+    ],
+    "deelberoepsprestaties": [
+      "Projectmanagement",
+      "Software ontwerpen",
+      "Software realiseren",
+      "Software testen",
+      "Software beheren"
+    ],
+    "deelstappen": [
+      "CI/CD straat opzetten",
+      "Wensen vertalen naar product-increments",
+      "Software ontwikkelen"
+    ],
+    "kennis_vaardigheden": [
+      "DevOps",
+      "Containerization",
+      "Kanban"
+    ],
+    "modellen_theorieen": [
+      "Retrospective"
+    ],
     "beroepscontext": "Eigen verantwoordelijkheid voor proces, product en stakeholders."
   },
   {
@@ -301,10 +492,20 @@
     "naam": "Gebruikersinteractie",
     "ec": 3,
     "omschrijving": "Je ontwerpt de gebruikersinteractie van een te ontwikkelen softwareoplossing. Je maakt gebruik van bestaande ontwerpprincipes en adviseert jouw opdrachtgever. Je valideert je ontwerp bij internationaal georiënteerde doelgroepen.",
-    "eindkwalificaties": ["Software ontwerpen"],
-    "deelberoepsprestaties": ["Software ontwerpen"],
-    "deelstappen": ["Gebruikerstesten", "Presenteren en beslissen met product owner"],
-    "kennis_vaardigheden": ["UX-testing", "Value Sensitive Design"],
+    "eindkwalificaties": [
+      "Software ontwerpen"
+    ],
+    "deelberoepsprestaties": [
+      "Software ontwerpen"
+    ],
+    "deelstappen": [
+      "Gebruikerstesten",
+      "Presenteren en beslissen met product owner"
+    ],
+    "kennis_vaardigheden": [
+      "UX-testing",
+      "Value Sensitive Design"
+    ],
     "modellen_theorieen": [],
     "beroepscontext": "In bedrijfscontext."
   },
@@ -315,7 +516,14 @@
     "naam": "Afstuderen",
     "ec": 30,
     "omschrijving": "In het afstudeertraject laat je zien dat je de kennis, vaardigheden en houdingsaspecten hebt om als startend professional binnen een organisatie te functioneren. Je werkt aan een softwareoplossing voor een complex automatiseringsvraagstuk verstrekt door de afstudeergever.",
-    "eindkwalificaties": ["Software ontwerpen", "Software realiseren", "Software testen", "Analyseren/adviseren", "Projectmanagement", "Professioneel handelen"],
+    "eindkwalificaties": [
+      "Software ontwerpen",
+      "Software realiseren",
+      "Software testen",
+      "Analyseren/adviseren",
+      "Projectmanagement",
+      "Professioneel handelen"
+    ],
     "deelberoepsprestaties": [],
     "deelstappen": [],
     "kennis_vaardigheden": [],
