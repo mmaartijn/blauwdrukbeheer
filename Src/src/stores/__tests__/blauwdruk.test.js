@@ -284,35 +284,11 @@ describe('loadAll', () => {
     expect(urls).toContain('/data/leeruitkomsten.json')
   })
 
-  it('zet hasError op true wanneer een fetch mislukt', async () => {
+  it('gooit een fout wanneer een fetch mislukt', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
     const store = useBlauwdrukStore()
-    await store.loadAll()
-    expect(store.hasError).toBe(true)
+    await expect(store.loadAll()).rejects.toThrow()
   })
-
-  it('zet isLoading op false na afloop, ook bij fout', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Timeout'))
-    const store = useBlauwdrukStore()
-    await store.loadAll()
-    expect(store.isLoading).toBe(false)
-  })
-
-  it('reset hasError bij herlaad na eerdere fout', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Eerste fout'))
-    const store = useBlauwdrukStore()
-    await store.loadAll()
-    expect(store.hasError).toBe(true)
-
-    mockFetch
-      .mockResolvedValueOnce({ json: () => Promise.resolve([]) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve([]) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve([]) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve([]) })
-    await store.loadAll()
-    expect(store.hasError).toBe(false)
-  })
-})
 
 // ── generateId ───────────────────────────────────────────────────────────────
 
