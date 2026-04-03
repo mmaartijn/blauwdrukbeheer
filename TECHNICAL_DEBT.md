@@ -1,6 +1,7 @@
 # Technical Debt
 
 Bijgehouden per audit-moment. Voeg bevindingen toe zodra ze ontdekt worden; vink af zodra ze opgelost zijn.
+Per nieuwe audit-ronde een nieuwe sectie toevoegen, met de datum van de audit. Zorg er dus voor dat de oude secties niet worden overschreven.
 
 **Formaat:** `[ ]` open · `[x]` opgelost · `[~]` in uitvoering
 **Ernst:** 🔴 Hoog · 🟡 Middel · 🟢 Laag
