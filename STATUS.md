@@ -53,3 +53,15 @@
 - [x] ModuleDetailView: volledige modulebeschrijving met leeruitkomsten en keywords per portefeuille; print-klaar via @media print + "Afdrukken / PDF" knop.
 - [x] Router uitgebreid met `/modules` en `/modules/:periodeId`.
 - [x] Navigatie in App.vue aangevuld met "Modules".
+- [x] EC-berekening gecorrigeerd: som van alle leeruitkomst-ECs, fallback op parsing modulenaam.
+- [x] Toetsmatrijs toegevoegd aan leeruitkomsten.json en getoond in ModuleDetailView.
+- [x] Tabblad "Leeruitkomsten" verwijderd uit navigatie.
+
+## Fase 8 – Edit mode via contextmenu
+- [x] Contextmenu (rechtsklik) op modulenaam → naam bewerken.
+- [x] Contextmenu op leeruitkomst → inline bewerken (alle velden incl. toetsmatrijs) of verwijderen.
+- [x] Contextmenu op keyword-rij → bewerken/verwijderen via KeywordModal (zelfde data als matrix).
+- [x] Contextmenu op portefeuille-header → nieuw keyword toevoegen.
+- [x] Info-hint boven de kaart legt rechtermuisklik-interactie uit.
+- [x] Bug opgelost: contextmenu sloot te vroeg door `mousedown`-timing; opgelost met `@mousedown.stop`.
+- [x] Matrix: portefeuilles standaard uit, categorieën standaard uitgeklapt; vaste labelbreedtes; dash/vinkje toggle in portefeuilleклeur; Bloom-badges zonder gekleurde itemranden.
