@@ -252,8 +252,8 @@
     "portefeuille": "databases",
     "periode": "P1.2",
     "naam": "Normalisatie",
-    "bloom": null,
-    "toelichting": ""
+    "bloom": 3,
+    "toelichting": "3e normaalvorm zelf bouwen"
   },
   {
     "id": "kw-033",
