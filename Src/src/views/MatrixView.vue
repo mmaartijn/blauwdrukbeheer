@@ -18,30 +18,36 @@
         >
           <button
             @click="togglePortefeuille(pf.id)"
-            class="px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5"
-            :class="[isVisible(pf.id) ? pfColor(index).text : 'text-gray-400 hover:text-gray-600']"
+            class="w-44 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5"
+            :class="[pfColor(index).text, !isVisible(pf.id) && 'opacity-40']"
           >
-            <span class="w-2 h-2 rounded-full" :class="isVisible(pf.id) ? pfColor(index).dot : 'bg-gray-300'"></span>
+            <!-- Vinkje: aangevinkt = gevuld, uitgevinkt = outline -->
+            <svg v-if="isVisible(pf.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M5 10h10"/>
+            </svg>
             {{ pf.label }}
           </button>
           
           <button
-            v-if="isVisible(pf.id)"
-            @click.stop="expandCategoryAll(pf.id)"
-            class="px-1.5 py-1.5 border-l text-[11px] hover:bg-white/50"
-            :class="[pfColor(index).border, pfColor(index).text]"
+            @click.stop="isVisible(pf.id) && expandCategoryAll(pf.id)"
+            :disabled="!isVisible(pf.id)"
+            class="px-1.5 py-1.5 border-l text-[11px]"
+            :class="isVisible(pf.id) ? [pfColor(index).border, pfColor(index).text, 'hover:bg-white/50'] : 'border-gray-200 text-gray-300 cursor-not-allowed'"
             title="Alle blokken voor deze categorie uitklappen"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
           </button>
-          
+
           <button
-            v-if="isVisible(pf.id)"
-            @click.stop="collapseCategoryAll(pf.id)"
-            class="px-1.5 py-1.5 border-l text-[11px] hover:bg-white/50"
-            :class="[pfColor(index).border, pfColor(index).text]"
+            @click.stop="isVisible(pf.id) && collapseCategoryAll(pf.id)"
+            :disabled="!isVisible(pf.id)"
+            class="px-1.5 py-1.5 border-l text-[11px]"
+            :class="isVisible(pf.id) ? [pfColor(index).border, pfColor(index).text, 'hover:bg-white/50'] : 'border-gray-200 text-gray-300 cursor-not-allowed'"
             title="Alle blokken voor deze categorie inklappen"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
@@ -143,12 +149,14 @@
                           <button
                             v-for="kw in keywordsFor(pf.id, cell.periode.id)"
                             :key="kw.id"
-                            class="text-left text-xs px-2 py-1.5 rounded border transition-shadow hover:shadow-md w-full bg-white opacity-95 hover:opacity-100"
-                            :class="bloomClass(kw.bloom)"
+                            class="text-left text-xs px-2 py-1.5 rounded border border-gray-200 text-gray-700 transition-shadow hover:shadow-md w-full bg-white opacity-95 hover:opacity-100 flex items-center justify-between gap-1"
                             @click="openKeyword(kw)"
                             :title="kw.toelichting || kw.naam"
                           >
-                            {{ kw.naam }}
+                            <span>{{ kw.naam }}</span>
+                            <span v-if="kw.bloom" class="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0" :class="bloomBadgeClass(kw.bloom)">
+                              {{ bloomLabel(kw.bloom) }}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -175,12 +183,12 @@
     </div>
 
     <!-- Bloom legenda -->
-    <div class="mt-5 flex flex-wrap gap-2 text-xs">
+    <div class="mt-5 flex flex-wrap gap-2 text-xs items-center">
       <span class="font-medium text-gray-600 mr-1 py-0.5">Bloom-niveau:</span>
-      <span v-for="b in bloomLevels" :key="b.level" class="px-2 py-0.5 rounded border shadow-sm bg-white" :class="bloomClass(b.level)">
-        {{ b.level }} – {{ b.label }}
+      <span v-for="b in bloomLevels" :key="b.level" class="px-2 py-0.5 rounded font-medium" :class="bloomBadgeClass(b.level)">
+        {{ b.label }}
       </span>
-      <span class="px-2 py-0.5 rounded border border-gray-200 text-gray-400 bg-white shadow-sm">niet ingesteld</span>
+      <span class="px-2 py-0.5 rounded border border-gray-200 text-gray-400 bg-white">niet ingesteld</span>
     </div>
 
     <!-- Keyword modal -->
@@ -197,7 +205,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 import KeywordModal from '@/components/KeywordModal.vue'
 
@@ -207,6 +215,21 @@ const activeKeyword = ref(null)
 
 const hiddenPortefeuilles = ref(new Set())
 const expandedCategories = ref(new Set())
+
+// Standaard: alle portefeuilles uit, alle categorieën uitgeklapt
+let initialized = false
+watch(
+  [() => store.portefeuilles, () => store.periodes],
+  ([pfs, periodes]) => {
+    if (initialized || !pfs.length || !periodes.length) return
+    initialized = true
+    hiddenPortefeuilles.value = new Set(pfs.map(p => p.id))
+    const keys = new Set()
+    periodes.forEach(p => pfs.forEach(pf => keys.add(`${p.id}-${pf.id}`)))
+    expandedCategories.value = keys
+  },
+  { immediate: true }
+)
 
 function toggleCategory(pfId, periodeId) {
   const key = `${periodeId}-${pfId}`
@@ -274,13 +297,28 @@ function isVisible(id) {
 }
 
 const bloomLevels = [
-  { level: 1, label: 'Onthouden' },
+  { level: 1, label: 'Kennen' },
   { level: 2, label: 'Begrijpen' },
   { level: 3, label: 'Toepassen' },
   { level: 4, label: 'Analyseren' },
   { level: 5, label: 'Evalueren' },
   { level: 6, label: 'Creëren' },
 ]
+
+const bloomLabels = ['', 'Kennen', 'Begrijpen', 'Toepassen', 'Analyseren', 'Evalueren', 'Creëren']
+function bloomLabel(n) { return bloomLabels[n] ?? `Niveau ${n}` }
+
+function bloomBadgeClass(level) {
+  const classes = {
+    1: 'bg-slate-100 text-slate-600',
+    2: 'bg-blue-100 text-blue-700',
+    3: 'bg-green-100 text-green-700',
+    4: 'bg-yellow-100 text-yellow-700',
+    5: 'bg-orange-100 text-orange-700',
+    6: 'bg-red-100 text-red-700',
+  }
+  return classes[level] ?? 'bg-gray-100 text-gray-600'
+}
 
 const tableRows = computed(() => {
   const rows = []
@@ -314,17 +352,6 @@ function keywordsFor(portefeuilleId, periodeId) {
   return store.keywords.filter(k => k.portefeuille === portefeuilleId && k.periode === periodeId)
 }
 
-function bloomClass(level) {
-  const classes = {
-    1: 'border-gray-300 text-gray-700',
-    2: 'border-blue-300 text-blue-800',
-    3: 'border-green-300 text-green-800',
-    4: 'border-yellow-300 text-yellow-800',
-    5: 'border-orange-300 text-orange-800',
-    6: 'border-red-300 text-red-800',
-  }
-  return classes[level] ?? 'border-gray-200 text-gray-500'
-}
 
 function openKeyword(kw) {
   activeKeyword.value = { ...kw }

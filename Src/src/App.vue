@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50">
     <nav class="bg-blue-800 text-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 h-14">
-        <span class="font-bold text-lg tracking-tight">Blauwdrukbeheer</span>
+        <RouterLink to="/" class="font-bold text-lg tracking-tight hover:text-blue-200 transition-colors">Blauwdrukbeheer</RouterLink>
         <RouterLink
           v-for="link in navLinks"
           :key="link.to"
@@ -31,7 +31,6 @@ const store = useBlauwdrukStore()
 const navLinks = [
   { to: '/matrix', label: 'Matrix' },
   { to: '/modules', label: 'Modules' },
-  { to: '/leeruitkomsten', label: 'Leeruitkomsten' },
   { to: '/keywords', label: 'Keywords' },
 ]
 
