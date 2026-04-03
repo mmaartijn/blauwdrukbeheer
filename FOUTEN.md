@@ -19,6 +19,13 @@ Dit bestand houdt bij welke fouten er gemaakt zijn en hoe ze in de toekomst voor
 
 ---
 
+**Fout:** `@apply` met Tailwind utility classes in een Vue `<style>`-blok gaf een build-fout in Tailwind v4.
+**Context:** Bij het bouwen van de edit-mode in `ModuleDetailView.vue` werden herbruikbare stijlen als `.edit-input`, `.edit-textarea` etc. via `@apply` gedefinieerd in de component-scoped `<style>` tag. Tailwind v4 (via de `@tailwindcss/vite` plugin) vereist dat je in zo'n blok expliciet aangeeft waar de design tokens vandaan komen. Zonder die declaratie weet de compiler niet in welke context hij de utility classes moet opzoeken, en gooit hij een fout: *"Cannot apply unknown utility class"*.
+**Oplossing:** `@reference "tailwindcss";` toegevoegd als eerste regel van het `<style>`-blok. Daarmee vertelt Tailwind v4 dat alle `@apply`-aanroepen in dit blok verwijzen naar de globale Tailwind-configuratie.
+**Voorkomen door:** In elk Vue-component dat `@apply` gebruikt in een `<style>`-blok (niet `<style scoped>` met `@tailwind`-imports, maar gewone component styles): altijd `@reference "tailwindcss";` bovenaan zetten. Alternatief: lange utility-strings volledig inline in het `class`-attribuut plaatsen en `@apply` helemaal vermijden — dat werkt in alle Tailwind-versies zonder extra declaraties.
+
+---
+
 **Fout:** Verkeerde UX-architectuur interpretatie van termen als "plusje bovenin de categorie om alles uit te klappen". (Globaal vs Lokaal)
 **Context:** Bij het toevoegen van uitklap-mogelijkheden in de matrix vroeg de gebruiker om een functionaliteit "bovenin de categorie". Dat werd geïnterpreteerd als de filter-headerbalk van de pagina (en dus globaal), in plaats van binnenin het specifieke categorie-blok in de tabel zelf.
 **Oplossing:** Zowel in de filterbalk als binnen de tabelcellen aparte plus/min knopjes in het leven geroepen, zodat óf per specifieke categoriecell genavigeerd kan worden, óf massaal (in de header).
