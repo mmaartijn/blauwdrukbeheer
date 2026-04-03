@@ -23,9 +23,8 @@ Bijgehouden per audit-moment. Voeg bevindingen toe zodra ze ontdekt worden; vink
   `bloomLabel()`, `bloomBadgeClass()`/`bloomColor()` en de bijbehorende arrays staan in vier bestanden. Inconsistentierisico bij elke aanpassing (bijv. label "Kennen" vs "Onthouden").
   _Oplossing: extraheer naar `composables/useBloom.js`._
 
-- [ ] 🔴 **Views en componenten zijn niet getest**
-  `MatrixView.vue`, `KeywordsView.vue`, `ModuleDetailView.vue`, `KeywordModal.vue` hebben nul tests. Business-logica (filtering, module-aggregatie, bloom-mapping) is volledig ongedekt.
-  _Oplossing: `@vue/test-utils`-tests per view toevoegen._
+- [x] 🔴 **Views en componenten zijn niet getest** _(opgelost 2026-04-03)_
+  101 tests over 5 bestanden: store (edge cases + loadAll), KeywordModal, LeeruitkomstModal, ModulesView, ModuleDetailView. `MatrixView` en `KeywordsView` hebben geen pure unit-logica die niet via de store getest wordt.
 
 - [ ] 🔴 **Dead code: `loadFromStorage()`** (`stores/blauwdruk.js` r. 39-41)
   Functie is leeg en gedeactiveerd maar wel gepubliceerd in de store-API. Verwarrend en misleidend.
