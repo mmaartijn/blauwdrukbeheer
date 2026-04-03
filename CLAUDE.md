@@ -39,6 +39,16 @@ Zie `/Data` voor de actuele bestanden. Hoofdentiteiten:
 3. **Overzicht/matrix** – visuele 4x4 Jaar × Blok matrix met colspan, opgedeeld en kleurgecodeerd in portefeuilles
 4. **Modulebeschrijvingen** – overzichtspagina (`/modules`) en detailpagina (`/modules/:periodeId`) met leeruitkomsten, toetsmatrijs en onderwerpen per portefeuille; print-klaar via `@media print`; volledig bewerkbaar via rechtsklik-contextmenu (leeruitkomsten, modulenaam, keywords)
 
+## Start van elke sessie / taak (VERPLICHT)
+Voordat je ook maar één regel code schrijft of aanpast, doe je het volgende:
+1. Lees `CLAUDE.md` (dit bestand) volledig door.
+2. Lees `STATUS.md` — wat is de huidige stand van het project?
+3. Lees `FOUTEN.md` — welke valkuilen zijn er al eerder ingetrapt?
+4. Lees `TECHNICAL_DEBT.md` — wat is de bekende schuld; los je iets op of introduceer je iets nieuws?
+5. Lees alle bestanden die je gaat aanpassen vóórdat je ze wijzigt.
+
+Pas daarna begin je met de uitvoering.
+
 ## Werkwijze
 - **Vraag bij onduidelijkheden altijd aan de gebruiker wat hij wil.** Maak geen aannames over scope of ontwerp.
 - **VIER-EENHEID DOCUMENTATIE (CRUCIAAL):** Je MOET te allen tijde rekening houden met de bestanden `CLAUDE.md`, `FOUTEN.md`, `STATUS.md` en `TECHNICAL_DEBT.md`. Lees ze, hou hun regels in acht en wees proactief in het updaten ervan als je een taak of iteratie afrondt.
