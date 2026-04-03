@@ -23,7 +23,7 @@ Per nieuwe audit-ronde een nieuwe sectie toevoegen, met de datum van de audit. Z
   Geëxtraheerd naar `composables/useBloom.js` met `bloomLabel`, `bloomBadgeClass`, `bloomTableClass`, `bloomActiveClass`. Labels geünificeerd op 'Kennen' (niveau 1). Alle vier views/componenten importeren nu vanuit de composable.
 
 - [x] 🔴 **Views en componenten zijn niet getest** _(opgelost 2026-04-03)_
-  101 tests over 5 bestanden: store (edge cases + loadAll), KeywordModal, LeeruitkomstModal, ModulesView, ModuleDetailView. `MatrixView` en `KeywordsView` hebben geen pure unit-logica die niet via de store getest wordt.
+  101 tests over 5 bestanden: store (edge cases + loadAll, hasError, isLoading), KeywordModal, LeeruitkomstModal, ModulesView, ModuleDetailView. `MatrixView` en `KeywordsView` hebben geen pure unit-logica die niet via de store getest wordt.
 
 - [x] 🔴 **Dead code: `loadFromStorage()`** (`stores/blauwdruk.js`) _(opgelost 2026-04-03)_
   Functie en return-vermelding verwijderd uit de store.
