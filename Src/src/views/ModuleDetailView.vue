@@ -340,6 +340,7 @@
         v-if="ctxMenu.visible"
         class="no-print fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 min-w-44 text-sm"
         :style="{ top: ctxMenu.y + 'px', left: ctxMenu.x + 'px' }"
+        @mousedown.stop
       >
         <template v-if="ctxMenu.type === 'lu'">
           <button @click="ctxEdit" class="ctx-item">
