@@ -22,7 +22,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
       </svg>
-      Klik met de rechtermuisknop op de modulenaam of een leeruitkomst om te bewerken of verwijderen.
+      Klik met de rechtermuisknop op de modulenaam, een leeruitkomst of een onderwerp om te bewerken of verwijderen.
     </p>
 
     <div v-if="module" class="print-document bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-4xl mx-auto">
@@ -306,14 +306,28 @@
       </section>
 
       <!-- ── Onderwerpen ── -->
-      <section v-if="keywordsPerPortefeuille.length">
+      <section v-if="keywordsPerPortefeuille.length || true">
         <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Onderwerpen</h2>
         <div class="grid grid-cols-1 gap-4">
-          <div v-for="pf in keywordsPerPortefeuille" :key="pf.id" class="border border-gray-100 rounded-lg p-4">
-            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{{ pf.label }}</h3>
-            <table class="w-full text-sm">
+          <div
+            v-for="pf in allPortefeuilles"
+            v-show="keywordsVoorPf(pf.id).length > 0 || true"
+            :key="pf.id"
+            class="border border-gray-100 rounded-lg p-4"
+          >
+            <div class="flex items-center justify-between mb-2"
+              @contextmenu.prevent="openContextMenu($event, 'pf', null, pf.id)"
+            >
+              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">{{ pf.label }}</h3>
+            </div>
+            <table v-if="keywordsVoorPf(pf.id).length" class="w-full text-sm">
               <tbody>
-                <tr v-for="kw in pf.keywords" :key="kw.id" class="border-t border-gray-50 first:border-0">
+                <tr
+                  v-for="kw in keywordsVoorPf(pf.id)"
+                  :key="kw.id"
+                  class="border-t border-gray-50 first:border-0 hover:bg-gray-50 cursor-default"
+                  @contextmenu.prevent="openContextMenu($event, 'keyword', null, null, kw)"
+                >
                   <td class="py-1 pr-3 text-gray-800 break-words min-w-0 max-w-0 w-full">
                     {{ kw.naam }}
                     <span v-if="kw.toelichting" class="block text-xs text-gray-400 italic font-normal break-words">{{ kw.toelichting }}</span>
@@ -326,6 +340,7 @@
                 </tr>
               </tbody>
             </table>
+            <p v-else class="text-xs text-gray-300 italic">Geen onderwerpen</p>
           </div>
         </div>
       </section>
@@ -333,6 +348,17 @@
     </div>
 
     <div v-else class="text-center text-gray-400 py-20">Module niet gevonden.</div>
+
+    <!-- ── Keyword modal ── -->
+    <KeywordModal
+      v-if="kwModalOpen"
+      :keyword="activeKeyword"
+      :portefeuilles="store.portefeuilles"
+      :periodes="store.periodes"
+      @save="saveKeyword"
+      @delete="deleteKeyword"
+      @close="kwModalOpen = false"
+    />
 
     <!-- ── Contextmenu ── -->
     <Teleport to="body">
@@ -342,7 +368,32 @@
         :style="{ top: ctxMenu.y + 'px', left: ctxMenu.x + 'px' }"
         @mousedown.stop
       >
-        <template v-if="ctxMenu.type === 'lu'">
+        <template v-if="ctxMenu.type === 'keyword'">
+          <button @click="ctxEditKeyword" class="ctx-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+            Bewerken
+          </button>
+          <div class="border-t border-gray-100 my-1" />
+          <button @click="ctxDeleteKeyword" class="ctx-item text-red-500 hover:bg-red-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Verwijderen
+          </button>
+        </template>
+
+        <template v-else-if="ctxMenu.type === 'pf'">
+          <button @click="ctxNewKeyword" class="ctx-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            Keyword toevoegen
+          </button>
+        </template>
+
+        <template v-else-if="ctxMenu.type === 'lu'">
           <button @click="ctxEdit" class="ctx-item">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
@@ -375,6 +426,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
+import KeywordModal from '@/components/KeywordModal.vue'
 
 const route = useRoute()
 const store = useBlauwdrukStore()
@@ -399,13 +451,18 @@ const keywordsPerPortefeuille = computed(() => {
     .filter(pf => pf.keywords.length > 0)
 })
 
-// ── Contextmenu ─────────────────────────────────────────────
-const ctxMenu = ref({ visible: false, x: 0, y: 0, type: null, lu: null })
+const allPortefeuilles = computed(() => store.portefeuilles)
+function keywordsVoorPf(pfId) {
+  return store.keywords.filter(kw => kw.periode === periodeId.value && kw.portefeuille === pfId)
+}
 
-function openContextMenu(event, type, lu) {
+// ── Contextmenu ─────────────────────────────────────────────
+const ctxMenu = ref({ visible: false, x: 0, y: 0, type: null, lu: null, pfId: null, kw: null })
+
+function openContextMenu(event, type, lu, pfId = null, kw = null) {
   const x = Math.min(event.clientX, window.innerWidth - 200)
   const y = Math.min(event.clientY, window.innerHeight - 120)
-  ctxMenu.value = { visible: true, x, y, type, lu }
+  ctxMenu.value = { visible: true, x, y, type, lu, pfId, kw }
 }
 
 function closeContextMenu() { ctxMenu.value.visible = false }
@@ -413,6 +470,41 @@ function closeContextMenu() { ctxMenu.value.visible = false }
 function ctxEdit() { startEditLu(ctxMenu.value.lu); closeContextMenu() }
 function ctxDelete() { deleteLu(ctxMenu.value.lu.id); closeContextMenu() }
 function ctxEditNaam() { startEditModuleNaam(); closeContextMenu() }
+function ctxEditKeyword() { openKeyword(ctxMenu.value.kw); closeContextMenu() }
+function ctxDeleteKeyword() { deleteKeyword(ctxMenu.value.kw.id); closeContextMenu() }
+function ctxNewKeyword() { newKeyword(ctxMenu.value.pfId); closeContextMenu() }
+
+// ── Keywords ────────────────────────────────────────────────
+const kwModalOpen = ref(false)
+const activeKeyword = ref(null)
+
+function openKeyword(kw) {
+  activeKeyword.value = { ...kw }
+  kwModalOpen.value = true
+}
+
+function newKeyword(pfId) {
+  activeKeyword.value = {
+    id: store.generateId('kw'),
+    portefeuille: pfId ?? (store.portefeuilles[0]?.id ?? ''),
+    periode: periodeId.value,
+    naam: '',
+    bloom: null,
+    toelichting: '',
+  }
+  kwModalOpen.value = true
+}
+
+function saveKeyword(kw) {
+  if (store.keywords.find(k => k.id === kw.id)) store.updateKeyword(kw)
+  else store.addKeyword(kw)
+  kwModalOpen.value = false
+}
+
+function deleteKeyword(id) {
+  store.deleteKeyword(id)
+  kwModalOpen.value = false
+}
 
 onMounted(() => {
   document.addEventListener('mousedown', closeContextMenu)
