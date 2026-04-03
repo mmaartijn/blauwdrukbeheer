@@ -1,0 +1,357 @@
+<template>
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold text-gray-800">Jaar × Blok matrix</h1>
+    </div>
+
+    <!-- Portefeuille Toggles -->
+    <div class="mb-5 flex flex-wrap gap-2 justify-between items-center">
+      <div class="flex flex-wrap gap-2">
+        <div
+          v-for="(pf, index) in store.portefeuilles"
+          :key="pf.id"
+          class="flex items-center rounded-full border transition-all shadow-sm overflow-hidden"
+          :class="[
+             isVisible(pf.id) ? `${pfColor(index).bg} ${pfColor(index).border}` 
+                              : 'bg-white border-gray-200 opacity-75 hover:opacity-100'
+          ]"
+        >
+          <button
+            @click="togglePortefeuille(pf.id)"
+            class="px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5"
+            :class="[isVisible(pf.id) ? pfColor(index).text : 'text-gray-400 hover:text-gray-600']"
+          >
+            <span class="w-2 h-2 rounded-full" :class="isVisible(pf.id) ? pfColor(index).dot : 'bg-gray-300'"></span>
+            {{ pf.label }}
+          </button>
+          
+          <button
+            v-if="isVisible(pf.id)"
+            @click.stop="expandCategoryAll(pf.id)"
+            class="px-1.5 py-1.5 border-l text-[11px] hover:bg-white/50"
+            :class="[pfColor(index).border, pfColor(index).text]"
+            title="Alle blokken voor deze categorie uitklappen"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          
+          <button
+            v-if="isVisible(pf.id)"
+            @click.stop="collapseCategoryAll(pf.id)"
+            class="px-1.5 py-1.5 border-l text-[11px] hover:bg-white/50"
+            :class="[pfColor(index).border, pfColor(index).text]"
+            title="Alle blokken voor deze categorie inklappen"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 ml-auto">
+        <button
+          @click="expandAll"
+          class="px-2 py-1.5 rounded border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center transition-colors shadow-sm"
+          title="Alles uitklappen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button
+          @click="collapseAll"
+          class="px-2 py-1.5 rounded border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center transition-colors shadow-sm"
+          title="Alles inklappen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Matrix -->
+    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
+      <table class="text-sm border-collapse w-full min-w-[1000px]">
+        <thead>
+          <tr class="bg-blue-800 text-white">
+            <th class="px-3 py-3 text-left font-semibold sticky left-0 bg-blue-800 z-10 w-24 border-r border-blue-700">
+              Jaar
+            </th>
+            <th class="px-4 py-3 text-center font-semibold w-1/4 border-l border-blue-700">Blok 1</th>
+            <th class="px-4 py-3 text-center font-semibold w-1/4 border-l border-blue-700">Blok 2</th>
+            <th class="px-4 py-3 text-center font-semibold w-1/4 border-l border-blue-700">Blok 3</th>
+            <th class="px-4 py-3 text-center font-semibold w-1/4 border-l border-blue-700">Blok 4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(row, i) in tableRows"
+            :key="row.jaar"
+            :class="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          >
+            <td class="px-3 py-4 font-bold text-gray-700 sticky left-0 z-10 border-b border-r border-gray-200 whitespace-nowrap"
+                :class="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'">
+              Jaar {{ row.jaar }}
+            </td>
+            <td
+              v-for="(cell, cIdx) in row.cells"
+              :key="cIdx"
+              :colspan="cell.colspan"
+              class="px-3 py-4 align-top border-l border-b border-gray-200 relative"
+            >
+              <div v-if="cell.periode" class="flex flex-col h-full">
+                <div class="text-center font-bold text-gray-800 mb-3 pb-2 border-b border-gray-200">
+                  {{ cell.periode.label }}
+                </div>
+                
+                <div class="flex flex-col flex-1">
+                  <!-- Group keywords by portefeuille -->
+                  <div
+                    v-for="(pf, index) in store.portefeuilles"
+                    :key="pf.id"
+                  >
+                    <template v-if="isVisible(pf.id) && keywordsFor(pf.id, cell.periode.id).length > 0">
+                      <div class="px-2.5 py-2 rounded-lg mb-2.5 border" :class="[pfColor(index).bg, pfColor(index).border]">
+                        <div 
+                          class="text-[10px] font-bold uppercase tracking-widest flex items-center justify-between cursor-pointer" 
+                          :class="[pfColor(index).text, isExpanded(pf.id, cell.periode.id) ? 'mb-2' : '']"
+                          @click="toggleCategory(pf.id, cell.periode.id)"
+                        >
+                          <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full" :class="pfColor(index).dot"></span>
+                            <span>{{ pf.label }}</span>
+                          </div>
+                          <div class="flex items-center gap-1.5">
+                            <span v-if="!isExpanded(pf.id, cell.periode.id)" class="text-[9px] opacity-75 normal-case tracking-normal font-medium">
+                              {{ keywordsFor(pf.id, cell.periode.id).length }} onderwerp{{ keywordsFor(pf.id, cell.periode.id).length !== 1 ? 'en' : '' }}
+                            </span>
+                            <span class="opacity-80 hover:opacity-100 transition-opacity">
+                              <svg v-if="!isExpanded(pf.id, cell.periode.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                              </svg>
+                              <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+                              </svg>
+                            </span>
+                          </div>
+                        </div>
+                        <div v-if="isExpanded(pf.id, cell.periode.id)" class="flex flex-col gap-1.5">
+                          <button
+                            v-for="kw in keywordsFor(pf.id, cell.periode.id)"
+                            :key="kw.id"
+                            class="text-left text-xs px-2 py-1.5 rounded border transition-shadow hover:shadow-md w-full bg-white opacity-95 hover:opacity-100"
+                            :class="bloomClass(kw.bloom)"
+                            @click="openKeyword(kw)"
+                            :title="kw.toelichting || kw.naam"
+                          >
+                            {{ kw.naam }}
+                          </button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-dashed border-gray-200 text-center">
+                  <button
+                    class="text-xs text-blue-600 hover:text-blue-800 font-medium px-3 py-1.5 rounded hover:bg-blue-50 transition-colors"
+                    @click="newKeywordForPeriode(cell.periode.id)"
+                  >
+                    + Keyword toevoegen
+                  </button>
+                </div>
+              </div>
+              <div v-else class="flex items-center justify-center h-full min-h-[100px] text-gray-300 italic">
+                Geen invulling
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bloom legenda -->
+    <div class="mt-5 flex flex-wrap gap-2 text-xs">
+      <span class="font-medium text-gray-600 mr-1 py-0.5">Bloom-niveau:</span>
+      <span v-for="b in bloomLevels" :key="b.level" class="px-2 py-0.5 rounded border shadow-sm bg-white" :class="bloomClass(b.level)">
+        {{ b.level }} – {{ b.label }}
+      </span>
+      <span class="px-2 py-0.5 rounded border border-gray-200 text-gray-400 bg-white shadow-sm">niet ingesteld</span>
+    </div>
+
+    <!-- Keyword modal -->
+    <KeywordModal
+      v-if="modalOpen"
+      :keyword="activeKeyword"
+      :portefeuilles="store.portefeuilles"
+      :periodes="store.periodes"
+      @save="saveKeyword"
+      @delete="deleteKeyword"
+      @close="modalOpen = false"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useBlauwdrukStore } from '@/stores/blauwdruk'
+import KeywordModal from '@/components/KeywordModal.vue'
+
+const store = useBlauwdrukStore()
+const modalOpen = ref(false)
+const activeKeyword = ref(null)
+
+const hiddenPortefeuilles = ref(new Set())
+const expandedCategories = ref(new Set())
+
+function toggleCategory(pfId, periodeId) {
+  const key = `${periodeId}-${pfId}`
+  if (expandedCategories.value.has(key)) {
+    expandedCategories.value.delete(key)
+  } else {
+    expandedCategories.value.add(key)
+  }
+}
+
+function isExpanded(pfId, periodeId) {
+  return expandedCategories.value.has(`${periodeId}-${pfId}`)
+}
+
+function expandAll() {
+  store.periodes.forEach(p => {
+    store.portefeuilles.forEach(pf => {
+      expandedCategories.value.add(`${p.id}-${pf.id}`)
+    })
+  })
+}
+
+function collapseAll() {
+  expandedCategories.value.clear()
+}
+
+function expandCategoryAll(pfId) {
+  store.periodes.forEach(p => {
+    expandedCategories.value.add(`${p.id}-${pfId}`)
+  })
+}
+
+function collapseCategoryAll(pfId) {
+  store.periodes.forEach(p => {
+    expandedCategories.value.delete(`${p.id}-${pfId}`)
+  })
+}
+
+const colorClasses = [
+  { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-400' },
+  { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-400' },
+  { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-400' },
+  { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-400' },
+  { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-400' },
+  { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-400' },
+  { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-400' },
+  { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
+  { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200', dot: 'bg-pink-400' },
+]
+
+function pfColor(index) {
+  return colorClasses[index % colorClasses.length]
+}
+
+function togglePortefeuille(id) {
+  if (hiddenPortefeuilles.value.has(id)) {
+    hiddenPortefeuilles.value.delete(id)
+  } else {
+    hiddenPortefeuilles.value.add(id)
+  }
+}
+
+function isVisible(id) {
+  return !hiddenPortefeuilles.value.has(id)
+}
+
+const bloomLevels = [
+  { level: 1, label: 'Onthouden' },
+  { level: 2, label: 'Begrijpen' },
+  { level: 3, label: 'Toepassen' },
+  { level: 4, label: 'Analyseren' },
+  { level: 5, label: 'Evalueren' },
+  { level: 6, label: 'Creëren' },
+]
+
+const tableRows = computed(() => {
+  const rows = []
+  for (let jaar = 1; jaar <= 4; jaar++) {
+    const cells = []
+    let skipUntil = 0
+    for (let blok = 1; blok <= 4; blok++) {
+      if (blok < skipUntil) continue
+      
+      const periode = store.periodes.find(p => p.jaar === jaar && p.blokken.includes(blok))
+      if (periode) {
+        cells.push({
+          periode,
+          colspan: periode.blokken.length
+        })
+        skipUntil = blok + periode.blokken.length
+      } else {
+        cells.push({
+          periode: null,
+          colspan: 1
+        })
+        skipUntil = blok + 1
+      }
+    }
+    rows.push({ jaar, cells })
+  }
+  return rows
+})
+
+function keywordsFor(portefeuilleId, periodeId) {
+  return store.keywords.filter(k => k.portefeuille === portefeuilleId && k.periode === periodeId)
+}
+
+function bloomClass(level) {
+  const classes = {
+    1: 'border-gray-300 text-gray-700',
+    2: 'border-blue-300 text-blue-800',
+    3: 'border-green-300 text-green-800',
+    4: 'border-yellow-300 text-yellow-800',
+    5: 'border-orange-300 text-orange-800',
+    6: 'border-red-300 text-red-800',
+  }
+  return classes[level] ?? 'border-gray-200 text-gray-500'
+}
+
+function openKeyword(kw) {
+  activeKeyword.value = { ...kw }
+  modalOpen.value = true
+}
+
+function newKeywordForPeriode(periodeId) {
+  activeKeyword.value = {
+    id: store.generateId('kw'),
+    portefeuille: store.portefeuilles.length > 0 ? store.portefeuilles[0].id : '',
+    periode: periodeId,
+    naam: '',
+    bloom: null,
+    toelichting: '',
+  }
+  modalOpen.value = true
+}
+
+function saveKeyword(kw) {
+  const exists = store.keywords.find(k => k.id === kw.id)
+  if (exists) store.updateKeyword(kw)
+  else store.addKeyword(kw)
+  modalOpen.value = false
+}
+
+function deleteKeyword(id) {
+  store.deleteKeyword(id)
+  modalOpen.value = false
+}
+</script>

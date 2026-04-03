@@ -1,0 +1,42 @@
+[
+  {
+    "id": "abv",
+    "label": "ABV"
+  },
+  {
+    "id": "databases",
+    "label": "Databases"
+  },
+  {
+    "id": "duurzame-ontwikkeling",
+    "label": "Duurzame Ontwikkeling"
+  },
+  {
+    "id": "engels",
+    "label": "Engels"
+  },
+  {
+    "id": "integration-deployment",
+    "label": "Integration & Deployment"
+  },
+  {
+    "id": "onderzoekend-vermogen",
+    "label": "Onderzoekend Vermogen"
+  },
+  {
+    "id": "programmeren",
+    "label": "Programmeren"
+  },
+  {
+    "id": "projectmatig-werken",
+    "label": "Projectmatig werken"
+  },
+  {
+    "id": "slb",
+    "label": "Studieloopbaanbegeleiding"
+  },
+  {
+    "id": "user-interaction",
+    "label": "User Interaction"
+  }
+]

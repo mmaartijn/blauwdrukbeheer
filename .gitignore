@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+
+# Vite cache
+.vite/
+Src/.vite/
+
+# Temp/lock files
+~$*
+
+# OS
+.DS_Store
+Thumbs.db
