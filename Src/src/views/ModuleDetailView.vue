@@ -292,7 +292,7 @@
       <!-- Keywords per portefeuille (alleen view) -->
       <section v-if="!isEditing && keywordsPerPortefeuille.length">
         <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Onderwerpen</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4">
           <div
             v-for="pf in keywordsPerPortefeuille"
             :key="pf.id"
@@ -302,7 +302,10 @@
             <table class="w-full text-sm">
               <tbody>
                 <tr v-for="kw in pf.keywords" :key="kw.id" class="border-t border-gray-50 first:border-0">
-                  <td class="py-1 pr-3 text-gray-800">{{ kw.naam }}</td>
+                  <td class="py-1 pr-3 text-gray-800 break-words min-w-0 max-w-0 w-full">
+                    {{ kw.naam }}
+                    <span v-if="kw.toelichting" class="block text-xs text-gray-400 italic font-normal break-words">{{ kw.toelichting }}</span>
+                  </td>
                   <td class="py-1 text-right whitespace-nowrap">
                     <span v-if="kw.bloom" class="text-xs px-1.5 py-0.5 rounded font-medium" :class="bloomColor(kw.bloom)">
                       {{ bloomLabel(kw.bloom) }}
