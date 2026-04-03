@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { API } from '@/constants/api'
 
 export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const periodes = ref([])
@@ -7,40 +8,60 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const keywords = ref([])
   const leeruitkomsten = ref([])
 
+  // ── Laadstatus ────────────────────────────────────────────────────────────
+  const isLoading = ref(false)
+  const hasError = ref(false)
+
+  // Foutmelding die views kunnen tonen als een opslaan mislukt
+  const saveError = ref(null)
+
+  // ── Laden ─────────────────────────────────────────────────────────────────
   async function loadAll() {
-    const [p, pf, kw, lu] = await Promise.all([
-      fetch('/data/periodes.json').then(r => r.json()),
-      fetch('/data/portefeuilles.json').then(r => r.json()),
-      fetch('/data/keywords.json').then(r => r.json()),
-      fetch('/data/leeruitkomsten.json').then(r => r.json()),
-    ])
-    periodes.value = p
-    portefeuilles.value = pf
-    keywords.value = kw
-    leeruitkomsten.value = lu
+    isLoading.value = true
+    hasError.value = false
+    try {
+      const [p, pf, kw, lu] = await Promise.all([
+        fetch(API.PERIODES).then(r => r.json()),
+        fetch(API.PORTEFEUILLES).then(r => r.json()),
+        fetch(API.KEYWORDS).then(r => r.json()),
+        fetch(API.LEERUITKOMSTEN).then(r => r.json()),
+      ])
+      periodes.value = p
+      portefeuilles.value = pf
+      keywords.value = kw
+      leeruitkomsten.value = lu
+    } catch (e) {
+      hasError.value = true
+      console.error('Laden van data mislukt', e)
+    } finally {
+      isLoading.value = false
+    }
   }
 
+  // ── Opslaan ───────────────────────────────────────────────────────────────
   function saveKeywords() {
-    fetch('/data/keywords.json', {
+    fetch(API.KEYWORDS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(keywords.value, null, 2)
-    }).catch(e => console.error("Could not save keywords", e))
+      body: JSON.stringify(keywords.value, null, 2),
+    }).catch(e => {
+      saveError.value = 'Keywords opslaan mislukt. Controleer of de dev-server actief is.'
+      console.error('Could not save keywords', e)
+    })
   }
 
   function saveLeeruitkomsten() {
-    fetch('/data/leeruitkomsten.json', {
+    fetch(API.LEERUITKOMSTEN, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(leeruitkomsten.value, null, 2)
-    }).catch(e => console.error("Could not save leeruitkomsten", e))
+      body: JSON.stringify(leeruitkomsten.value, null, 2),
+    }).catch(e => {
+      saveError.value = 'Leeruitkomsten opslaan mislukt. Controleer of de dev-server actief is.'
+      console.error('Could not save leeruitkomsten', e)
+    })
   }
 
-  function loadFromStorage() {
-    // Gedeactiveerd o.b.v. nieuwe werkwijze: we lezen/schrijven nu direct naar systeembestanden via de dev-server.
-  }
-
-  // Keywords
+  // ── Keywords ──────────────────────────────────────────────────────────────
   function addKeyword(keyword) {
     keywords.value.push(keyword)
     saveKeywords()
@@ -57,7 +78,7 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     saveKeywords()
   }
 
-  // Leeruitkomsten
+  // ── Leeruitkomsten ────────────────────────────────────────────────────────
   function addLeeruitkomst(lu) {
     leeruitkomsten.value.push(lu)
     saveLeeruitkomsten()
@@ -74,13 +95,15 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     saveLeeruitkomsten()
   }
 
+  // ── Hulpfuncties ──────────────────────────────────────────────────────────
   function generateId(prefix) {
     return `${prefix}-${Date.now()}`
   }
 
   return {
     periodes, portefeuilles, keywords, leeruitkomsten,
-    loadAll, loadFromStorage,
+    isLoading, hasError, saveError,
+    loadAll,
     addKeyword, updateKeyword, deleteKeyword,
     addLeeruitkomst, updateLeeruitkomst, deleteLeeruitkomst,
     generateId,

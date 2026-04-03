@@ -2,7 +2,7 @@
   {
     "id": "lu-p11-1",
     "periode": "P1.1",
-    "module": "Module 1 – Een (deel)proces automatiseren (15 EC)",
+    "module": "ICT-SE 1.1 Een (deel)proces automatiseren",
     "naam": "Zelfstandig automatiseren middels software",
     "ec": 15,
     "omschrijving": "Je automatiseert een deel van een gegeven bedrijfsproces waarbij je op basis van een aangereikt model programmacode oplevert. Je evalueert hierbij je werkwijze zodat je jezelf professioneel kan ontwikkelen.\n\nJe maakt applicatielogica die met een bestaande database communiceert om data te tonen en te bewerken. Je bekijkt hierbij de oplossingen van je medestudenten en geeft daar feedback op.\n\nJe denkt kritisch na over het gebruik van jouw software en test de werking van jouw product onder verschillende omstandigheden. Daarbij gebruik je ook ontvangen feedback om je software te verbeteren.",
@@ -32,7 +32,7 @@
   {
     "id": "lu-p12-1",
     "periode": "P1.2",
-    "module": "Module 2 – Dataontwerp en OO programmeren (15 EC)",
+    "module": "ICT-SE 1.2 Dataontwerp en OO programmeren",
     "naam": "Object-georiënteerd programmeren",
     "ec": 15,
     "omschrijving": "Je bouwt een monolithische object-georiënteerde applicatie op basis van aangereikte ontwerpdiagrammen. Je programmeert aan de hand van geldende programmeerstandaarden en documenteert je code. Je test de werking van jouw applicatie onder verschillende omstandigheden.",
@@ -53,7 +53,7 @@
   {
     "id": "lu-p12-2",
     "periode": "P1.2",
-    "module": "Module 2 – Dataontwerp en OO programmeren (15 EC)",
+    "module": "ICT-SE 1.2 Dataontwerp en OO programmeren",
     "naam": "Samenwerken en communiceren bij het ontwikkelen van software",
     "ec": "",
     "omschrijving": "Je ontwikkelt met een groep medestudenten een softwareoplossing op basis van instructies van een projectdocent. Je herkent conflicten binnen de groep en geeft aan wat je kan doen om deze conflicten op te lossen. Je geeft je groepsleden feedback aan de hand van feedbackmodellen. Je reflecteert op je eigen gedrag in de groep.",
@@ -79,7 +79,7 @@
   {
     "id": "lu-p12-3",
     "periode": "P1.2",
-    "module": "Module 2 – Dataontwerp en OO programmeren (15 EC)",
+    "module": "ICT-SE 1.2 Dataontwerp en OO programmeren",
     "naam": "Dataontwerp en -realisatie",
     "ec": null,
     "omschrijving": "Je herkent de data-aspecten van een gegeven casus en vertaalt deze naar een efficiënt relationeel databasemodel. Je creëert een database door dit model te implementeren. Uit de gegeven casus identificeer je nuttige informatiebehoeften vanuit verschillende gebruikersinteracties. Hierbij houd je rekening met privacy- en securityaspecten.",
@@ -106,7 +106,7 @@
   {
     "id": "lu-p1314-1",
     "periode": "P1.3-1.4",
-    "module": "Module 3 – Volledig softwareontwikkelingsproces (30 EC)",
+    "module": "ICT-SE 1.3-1.4 De software development life cycle",
     "naam": "Software ontwerpen",
     "ec": null,
     "omschrijving": "Je analyseert een aangereikt automatiseringsvraagstuk waarbij je de aanleiding, context, en functionele en systeemeisen helder en eenduidig in kaart brengt. Je vertaalt de gestelde eisen naar functioneel ontwerp en maakt ook een technisch ontwerp middels diagrammen voor een OO client-server applicatie met overerving en polymorfisme.",
@@ -133,7 +133,7 @@
   {
     "id": "lu-p1314-2",
     "periode": "P1.3-1.4",
-    "module": "Module 3 – Volledig softwareontwikkelingsproces (30 EC)",
+    "module": "ICT-SE 1.3-1.4 De software development life cycle",
     "naam": "Software realiseren",
     "ec": null,
     "omschrijving": "Op basis van een functioneel en technisch ontwerp realiseer je object-georiënteerde client-server software, met overerving en polymorfisme, waarbij je gebruik maakt van ORM voor het creëren en benaderen van je relationele database. Je zorgt dat de logica en front-end functionaliteit automatisch getest is.",
@@ -161,7 +161,7 @@
   {
     "id": "lu-p1314-3",
     "periode": "P1.3-1.4",
-    "module": "Module 3 – Volledig softwareontwikkelingsproces (30 EC)",
+    "module": "ICT-SE 1.3-1.4 De software development life cycle",
     "naam": "Projectmatig werken",
     "ec": null,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing waarbij je je houdt aan een vooraf gedefinieerde fasering en projectmethodiek. Je bent verantwoordelijk voor een deel van de te realiseren software en zet gedistribueerd configuratiebeheer in.",
@@ -189,7 +189,7 @@
   {
     "id": "lu-p2122-1",
     "periode": "P2.1-2.2",
-    "module": "Full stack (30 EC)",
+    "module": "ICT-SE 2.1-2.2 Full stack development",
     "naam": "Projectmatig software ontwikkelen",
     "ec": 15,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing voor een externe klant. Je interviewt de klant en maakt een functioneel ontwerp. Je ontwikkelt, integreert en levert je software op aan de hand van een OTAP-ontwikkelstraat.",
@@ -217,7 +217,7 @@
   {
     "id": "lu-p2122-2",
     "periode": "P2.1-2.2",
-    "module": "Full stack (30 EC)",
+    "module": "ICT-SE 2.1-2.2 Full stack development",
     "naam": "Software testen",
     "ec": 5,
     "omschrijving": "Aan de hand van de wensen en eisen voor een applicatie maak je een Engelstalig testplan. Je schrijft een testspecificatie en implementeert een set van testen. Je voert de testen uit, rapporteert het resultaat en verbindt conclusies aan de uitkomst.",
@@ -248,7 +248,7 @@
   {
     "id": "lu-p2122-3",
     "periode": "P2.1-2.2",
-    "module": "Full stack (30 EC)",
+    "module": "ICT-SE 2.1-2.2 Full stack development",
     "naam": "Full stack development",
     "ec": 10,
     "omschrijving": "Je realiseert software op basis van een functioneel en technisch ontwerp. Je ontwikkelt en documenteert programmacode in het Engels. Je realiseert je software in een client/server architectuur en maakt hierbij gebruik van een geoptimaliseerde relationele database.",
@@ -357,7 +357,7 @@
   {
     "id": "lu-p24-1",
     "periode": "P2.4",
-    "module": "Architecturen (15 EC)",
+    "module": "ICT-SE 2.4 Software architectuur",
     "naam": "Architectuur op meso–macroniveau",
     "ec": 4,
     "omschrijving": "Je voert bij een beroepsspecifiek Engelssprekend bedrijf onderzoek uit naar het gebruikte applicatielandschap. Je analyseert het applicatielandschap op basis van ISO 25010. Je stelt een advies op waarbij je aandacht hebt voor refactoringskansen en draagt dit in het Engels schriftelijk over.",
@@ -384,7 +384,7 @@
   {
     "id": "lu-p24-2",
     "periode": "P2.4",
-    "module": "Architecturen (15 EC)",
+    "module": "ICT-SE 2.4 Software architectuur",
     "naam": "Architectuur op micro–mesoniveau",
     "ec": 11,
     "omschrijving": "Je ontwerpt en realiseert een complex objectgeoriënteerd softwaresysteem met als doel die te integreren in een bestaand groter applicatielandschap. Je maakt gebruik van gevestigde standaarden en ontwerpprincipes. Je beargumenteert en documenteert in het Engels jouw ontwerp- en implementatiekeuzes.",
@@ -412,7 +412,7 @@
   {
     "id": "lu-p3132-1",
     "periode": "P3.1-3.2",
-    "module": "Stage informatica (30 EC)",
+    "module": "ICT 3.1-3.2 Stage",
     "naam": "Stage",
     "ec": 30,
     "omschrijving": "In de stage laat je zien dat je de kennis, vaardigheden en houdingsaspecten hebt om als collega binnen een organisatie te functioneren. Je werkt aan een softwareoplossing voor een automatiseringsvraagstuk verstrekt door de stageorganisatie.",
@@ -433,7 +433,7 @@
   {
     "id": "lu-p33-1",
     "periode": "P3.3",
-    "module": "Continuous X (15 EC)",
+    "module": "ICT-SE 3.3 Continuous X",
     "naam": "Modulair opgebouwde software realiseren",
     "ec": 6,
     "omschrijving": "Je realiseert een softwareoplossing die bestaat uit meerdere onafhankelijke modules zodat deze modules ieder onafhankelijk van elkaar op- of afgeschaald kunnen worden. Je borgt de kwaliteit door automatische tests via CI-technieken en zet CD in om automatisch omgevingen bij te werken.",
@@ -456,7 +456,7 @@
   {
     "id": "lu-p33-2",
     "periode": "P3.3",
-    "module": "Continuous X (15 EC)",
+    "module": "ICT-SE 3.3 Continuous X",
     "naam": "Projectmatig software ontwikkelen vanuit de DevOps gedachte",
     "ec": 6,
     "omschrijving": "Je ontwikkelt met een groep medestudenten projectmatig een softwareoplossing waarbij je werkt volgens een agile projectmethodiek en devops-principes. Je projectgroep is een zelforganiserend team dat volledig verantwoordelijk is voor de gebruikersbehoefte.",
@@ -488,7 +488,7 @@
   {
     "id": "lu-p33-3",
     "periode": "P3.3",
-    "module": "Continuous X (15 EC)",
+    "module": "ICT-SE 3.3 Continuous X",
     "naam": "Gebruikersinteractie",
     "ec": 3,
     "omschrijving": "Je ontwerpt de gebruikersinteractie van een te ontwikkelen softwareoplossing. Je maakt gebruik van bestaande ontwerpprincipes en adviseert jouw opdrachtgever. Je valideert je ontwerp bij internationaal georiënteerde doelgroepen.",
@@ -512,7 +512,7 @@
   {
     "id": "lu-p4344-1",
     "periode": "P4.3-4.4",
-    "module": "Afstuderen informatica (30 EC)",
+    "module": "ICT 4.3-4.4 Afstuderen",
     "naam": "Afstuderen",
     "ec": 30,
     "omschrijving": "In het afstudeertraject laat je zien dat je de kennis, vaardigheden en houdingsaspecten hebt om als startend professional binnen een organisatie te functioneren. Je werkt aan een softwareoplossing voor een complex automatiseringsvraagstuk verstrekt door de afstudeergever.",

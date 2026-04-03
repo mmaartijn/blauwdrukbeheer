@@ -14,25 +14,25 @@
       <table class="w-full text-sm">
         <thead class="bg-gray-100 text-gray-700">
           <tr>
-            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" @click="toggleSort('naam')">
+            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" tabindex="0" role="button" :aria-sort="sortKey==='naam' ? (sortAsc ? 'ascending' : 'descending') : 'none'" @click="toggleSort('naam')" @keydown.enter.space.prevent="toggleSort('naam')">
               <div class="flex items-center justify-between">
                 Naam
                 <span :class="{'opacity-100': sortKey === 'naam', 'opacity-0 group-hover:opacity-30': sortKey !== 'naam'}" class="text-xs transition-opacity">{{ sortKey === 'naam' && !sortAsc ? '▼' : '▲' }}</span>
               </div>
             </th>
-            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" @click="toggleSort('portefeuille')">
+            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" tabindex="0" role="button" :aria-sort="sortKey==='portefeuille' ? (sortAsc ? 'ascending' : 'descending') : 'none'" @click="toggleSort('portefeuille')" @keydown.enter.space.prevent="toggleSort('portefeuille')">
               <div class="flex items-center justify-between">
                 Portefeuille
                 <span :class="{'opacity-100': sortKey === 'portefeuille', 'opacity-0 group-hover:opacity-30': sortKey !== 'portefeuille'}" class="text-xs transition-opacity">{{ sortKey === 'portefeuille' && !sortAsc ? '▼' : '▲' }}</span>
               </div>
             </th>
-            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" @click="toggleSort('periode')">
+            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group" tabindex="0" role="button" :aria-sort="sortKey==='periode' ? (sortAsc ? 'ascending' : 'descending') : 'none'" @click="toggleSort('periode')" @keydown.enter.space.prevent="toggleSort('periode')">
               <div class="flex items-center justify-between">
                 Periode
                 <span :class="{'opacity-100': sortKey === 'periode', 'opacity-0 group-hover:opacity-30': sortKey !== 'periode'}" class="text-xs transition-opacity">{{ sortKey === 'periode' && !sortAsc ? '▼' : '▲' }}</span>
               </div>
             </th>
-            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group whitespace-nowrap" @click="toggleSort('bloom')">
+            <th class="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-200 select-none group whitespace-nowrap" tabindex="0" role="button" :aria-sort="sortKey==='bloom' ? (sortAsc ? 'ascending' : 'descending') : 'none'" @click="toggleSort('bloom')" @keydown.enter.space.prevent="toggleSort('bloom')">
               <div class="flex items-center justify-between">
                 Bloom
                 <span :class="{'opacity-100': sortKey === 'bloom', 'opacity-0 group-hover:opacity-30': sortKey !== 'bloom'}" class="text-xs transition-opacity">{{ sortKey === 'bloom' && !sortAsc ? '▼' : '▲' }}</span>
@@ -112,6 +112,7 @@
 import { ref, computed } from 'vue'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 import KeywordModal from '@/components/KeywordModal.vue'
+import { bloomLevels, bloomLabel, bloomTableClass } from '@/composables/useBloom'
 
 const store = useBlauwdrukStore()
 const modalOpen = ref(false)
@@ -121,14 +122,7 @@ const filterPeriode = ref('')
 const filterBloom = ref('')
 const filterText = ref('')
 
-const bloomLevels = [
-  { level: 1, label: 'Onthouden' },
-  { level: 2, label: 'Begrijpen' },
-  { level: 3, label: 'Toepassen' },
-  { level: 4, label: 'Analyseren' },
-  { level: 5, label: 'Evalueren' },
-  { level: 6, label: 'Creëren' },
-]
+// bloomLevels, bloomLabel, bloomTableClass komen uit @/composables/useBloom
 
 const sortKey = ref('naam')
 const sortAsc = ref(true)
@@ -186,21 +180,8 @@ function periodeLabel(id) {
   return store.periodes.find(p => p.id === id)?.label ?? id
 }
 
-function bloomLabel(level) {
-  return bloomLevels.find(b => b.level === level)?.label ?? ''
-}
-
-function bloomClass(level) {
-  const classes = {
-    1: 'bg-gray-100 border-gray-300 text-gray-700',
-    2: 'bg-blue-50 border-blue-200 text-blue-800',
-    3: 'bg-green-50 border-green-200 text-green-800',
-    4: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    5: 'bg-orange-50 border-orange-200 text-orange-800',
-    6: 'bg-red-50 border-red-200 text-red-800',
-  }
-  return classes[level] ?? 'bg-white border-gray-200 text-gray-500'
-}
+// bloomLabel en bloomTableClass komen uit @/composables/useBloom
+const bloomClass = bloomTableClass
 
 function openKeyword(kw) {
   activeKeyword.value = { ...kw }

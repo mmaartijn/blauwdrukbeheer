@@ -121,11 +121,20 @@
                     :key="pf.id"
                   >
                     <template v-if="isVisible(pf.id) && keywordsFor(pf.id, cell.periode.id).length > 0">
-                      <div class="px-2.5 py-2 rounded-lg mb-2.5 border" :class="[pfColor(index).bg, pfColor(index).border]">
-                        <div 
-                          class="text-[10px] font-bold uppercase tracking-widest flex items-center justify-between cursor-pointer" 
+                      <div
+                        class="px-2.5 py-2 rounded-lg mb-2.5 border"
+                        :class="[pfColor(index).bg, pfColor(index).border]"
+                        role="region"
+                        :aria-label="pf.label"
+                      >
+                        <div
+                          class="text-[10px] font-bold uppercase tracking-widest flex items-center justify-between cursor-pointer"
                           :class="[pfColor(index).text, isExpanded(pf.id, cell.periode.id) ? 'mb-2' : '']"
+                          role="button"
+                          tabindex="0"
+                          :aria-expanded="isExpanded(pf.id, cell.periode.id)"
                           @click="toggleCategory(pf.id, cell.periode.id)"
+                          @keydown.enter.space.prevent="toggleCategory(pf.id, cell.periode.id)"
                         >
                           <div class="flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full" :class="pfColor(index).dot"></span>
@@ -208,6 +217,8 @@
 import { ref, computed, watch } from 'vue'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 import KeywordModal from '@/components/KeywordModal.vue'
+import { bloomLevels, bloomLabel, bloomBadgeClass } from '@/composables/useBloom'
+import { pfColor } from '@/composables/usePortefeuille'
 
 const store = useBlauwdrukStore()
 const modalOpen = ref(false)
@@ -268,21 +279,7 @@ function collapseCategoryAll(pfId) {
   })
 }
 
-const colorClasses = [
-  { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-400' },
-  { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-400' },
-  { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-400' },
-  { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-400' },
-  { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-400' },
-  { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-400' },
-  { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-400' },
-  { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
-  { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200', dot: 'bg-pink-400' },
-]
-
-function pfColor(index) {
-  return colorClasses[index % colorClasses.length]
-}
+// pfColor komt uit @/composables/usePortefeuille
 
 function togglePortefeuille(id) {
   if (hiddenPortefeuilles.value.has(id)) {
@@ -296,36 +293,18 @@ function isVisible(id) {
   return !hiddenPortefeuilles.value.has(id)
 }
 
-const bloomLevels = [
-  { level: 1, label: 'Kennen' },
-  { level: 2, label: 'Begrijpen' },
-  { level: 3, label: 'Toepassen' },
-  { level: 4, label: 'Analyseren' },
-  { level: 5, label: 'Evalueren' },
-  { level: 6, label: 'Creëren' },
-]
+// bloomLevels, bloomLabel, bloomBadgeClass komen uit @/composables/useBloom
 
-const bloomLabels = ['', 'Kennen', 'Begrijpen', 'Toepassen', 'Analyseren', 'Evalueren', 'Creëren']
-function bloomLabel(n) { return bloomLabels[n] ?? `Niveau ${n}` }
-
-function bloomBadgeClass(level) {
-  const classes = {
-    1: 'bg-slate-100 text-slate-600',
-    2: 'bg-blue-100 text-blue-700',
-    3: 'bg-green-100 text-green-700',
-    4: 'bg-yellow-100 text-yellow-700',
-    5: 'bg-orange-100 text-orange-700',
-    6: 'bg-red-100 text-red-700',
-  }
-  return classes[level] ?? 'bg-gray-100 text-gray-600'
-}
+// Bepaal het maximum jaar en blok dynamisch vanuit de data
+const maxJaar = computed(() => Math.max(0, ...store.periodes.map(p => p.jaar)))
+const maxBlok = computed(() => Math.max(0, ...store.periodes.flatMap(p => p.blokken)))
 
 const tableRows = computed(() => {
   const rows = []
-  for (let jaar = 1; jaar <= 4; jaar++) {
+  for (let jaar = 1; jaar <= maxJaar.value; jaar++) {
     const cells = []
     let skipUntil = 0
-    for (let blok = 1; blok <= 4; blok++) {
+    for (let blok = 1; blok <= maxBlok.value; blok++) {
       if (blok < skipUntil) continue
       
       const periode = store.periodes.find(p => p.jaar === jaar && p.blokken.includes(blok))

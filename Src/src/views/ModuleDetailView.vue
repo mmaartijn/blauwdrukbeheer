@@ -427,6 +427,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 import KeywordModal from '@/components/KeywordModal.vue'
+import { bloomLabel, bloomBadgeClass } from '@/composables/useBloom'
 
 const route = useRoute()
 const store = useBlauwdrukStore()
@@ -452,8 +453,19 @@ const keywordsPerPortefeuille = computed(() => {
 })
 
 const allPortefeuilles = computed(() => store.portefeuilles)
+
+// Gegroepeerde keywords per portefeuille — O(n) i.p.v. O(n²)
+const keywordsPerPfMap = computed(() => {
+  const map = {}
+  for (const kw of store.keywords) {
+    if (kw.periode !== periodeId.value) continue
+    if (!map[kw.portefeuille]) map[kw.portefeuille] = []
+    map[kw.portefeuille].push(kw)
+  }
+  return map
+})
 function keywordsVoorPf(pfId) {
-  return store.keywords.filter(kw => kw.periode === periodeId.value && kw.portefeuille === pfId)
+  return keywordsPerPfMap.value[pfId] ?? []
 }
 
 // ── Contextmenu ─────────────────────────────────────────────
@@ -519,6 +531,7 @@ const editingModuleNaam = ref(false)
 const editModuleNaamValue = ref('')
 
 function startEditModuleNaam() {
+  if (!module.value) return
   editModuleNaamValue.value = module.value.naam
   editingModuleNaam.value = true
 }
@@ -602,15 +615,8 @@ function addSectie(lu) {
 
 function addToetsItem(sectie) { sectie.items.push({ omschrijving: '', punten: 0, criteria: [] }) }
 
-// ── Bloom ───────────────────────────────────────────────────
-const bloomLabels = ['', 'Kennen', 'Begrijpen', 'Toepassen', 'Analyseren', 'Evalueren', 'Creëren']
-const bloomColors = [
-  '', 'bg-slate-100 text-slate-600', 'bg-blue-100 text-blue-700',
-  'bg-green-100 text-green-700', 'bg-yellow-100 text-yellow-700',
-  'bg-orange-100 text-orange-700', 'bg-red-100 text-red-700',
-]
-function bloomLabel(n) { return bloomLabels[n] ?? `Niveau ${n}` }
-function bloomColor(n) { return bloomColors[n] ?? 'bg-gray-100 text-gray-600' }
+// bloomLabel en bloomBadgeClass komen uit @/composables/useBloom
+const bloomColor = bloomBadgeClass
 
 function doPrint() { window.print() }
 </script>
