@@ -1,11 +1,13 @@
 <template>
   <div>
+    <!-- Sticky header: titel + portefeuille toggles -->
+    <div class="sticky top-0 z-10 bg-gray-50 pt-6 pb-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-gray-800">Jaar × Blok matrix</h1>
     </div>
 
     <!-- Portefeuille Toggles -->
-    <div class="mb-5 flex flex-wrap gap-2 justify-between items-center">
+    <div class="flex flex-wrap gap-2 justify-between items-center">
       <div class="flex flex-wrap gap-2">
         <div
           v-for="(pf, index) in store.portefeuilles"
@@ -78,6 +80,7 @@
         </button>
       </div>
     </div>
+    </div><!-- /sticky header -->
 
     <!-- Matrix -->
     <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
@@ -110,8 +113,12 @@
               class="px-3 py-4 align-top border-l border-b border-gray-200 relative"
             >
               <div v-if="cell.periode" class="flex flex-col h-full">
-                <div class="text-center font-bold text-gray-800 mb-3 pb-2 border-b border-gray-200">
-                  {{ cell.periode.label }}
+                <div class="text-center mb-3 pb-2 border-b border-gray-200">
+                  <router-link
+                    :to="{ name: 'module-detail', params: { periodeId: cell.periode.id } }"
+                    class="font-bold text-blue-700 hover:text-blue-900 hover:underline text-sm leading-tight"
+                  >{{ moduleNaam(cell.periode.id) || cell.periode.label }}</router-link>
+                  <div v-if="moduleNaam(cell.periode.id)" class="text-xs text-gray-400 mt-0.5">{{ cell.periode.label }}</div>
                 </div>
                 
                 <div class="flex flex-col flex-1">
@@ -191,8 +198,8 @@
       </table>
     </div>
 
-    <!-- Bloom legenda -->
-    <div class="mt-5 flex flex-wrap gap-2 text-xs items-center">
+    <!-- Bloom legenda (sticky footer) -->
+    <div class="sticky bottom-0 z-10 bg-gray-50 pt-3 pb-5 mt-5 flex flex-wrap gap-2 text-xs items-center">
       <span class="font-medium text-gray-600 mr-1 py-0.5">Bloom-niveau:</span>
       <span v-for="b in bloomLevels" :key="b.level" class="px-2 py-0.5 rounded font-medium" :class="bloomBadgeClass(b.level)">
         {{ b.label }}
@@ -215,6 +222,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 import KeywordModal from '@/components/KeywordModal.vue'
 import { bloomLevels, bloomLabel, bloomBadgeClass } from '@/composables/useBloom'
@@ -326,6 +334,18 @@ const tableRows = computed(() => {
   }
   return rows
 })
+
+const moduleNaamMap = computed(() => {
+  const map = {}
+  store.leeruitkomsten.forEach(lu => {
+    if (lu.periode && lu.module && !map[lu.periode]) map[lu.periode] = lu.module
+  })
+  return map
+})
+
+function moduleNaam(periodeId) {
+  return moduleNaamMap.value[periodeId] || null
+}
 
 function keywordsFor(portefeuilleId, periodeId) {
   return store.keywords.filter(k => k.portefeuille === portefeuilleId && k.periode === periodeId)

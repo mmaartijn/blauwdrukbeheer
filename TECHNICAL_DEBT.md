@@ -57,6 +57,9 @@ Per nieuwe audit-ronde een nieuwe sectie toevoegen, met de datum van de audit. Z
 
 ### P3 – Laag / Nice-to-have
 
+- [x] 🟢 **Modulenamen dubbel opgeslagen** (`Data/periodes.json` + `Data/leeruitkomsten.json`) _(opgelost 2026-04-03)_
+  `naam`-veld verwijderd uit `periodes.json`; `MatrixView` leidt de modulenaam af via `moduleNaamMap` computed op basis van `store.leeruitkomsten`.
+
 - [ ] 🟢 **Modal state pattern 3× herhaald**
   `modalOpen`, `activeItem`, `openItem()`, `saveItem()` staat vrijwel identiek in `KeywordsView`, `ModuleDetailView` en elders.
   _Oplossing: `composables/useModal.js`._

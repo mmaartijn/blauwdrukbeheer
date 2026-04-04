@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="h-screen flex flex-col bg-gray-50 overflow-hidden">
     <nav class="bg-blue-800 text-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 h-14">
         <RouterLink to="/" class="font-bold text-lg tracking-tight hover:text-blue-200 transition-colors">Blauwdrukbeheer</RouterLink>
@@ -16,7 +16,7 @@
     </nav>
 
     <!-- Laadscherm -->
-    <div v-if="store.isLoading" class="flex flex-col items-center justify-center py-32 gap-4 text-gray-400">
+    <div v-if="store.isLoading" class="flex-1 flex flex-col items-center justify-center gap-4 text-gray-400">
       <svg class="w-8 h-8 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Foutscherm bij laden -->
-    <div v-else-if="store.hasError" class="max-w-xl mx-auto mt-16 px-4">
+    <div v-else-if="store.hasError" class="flex-1 flex items-start justify-center pt-16 px-4">
       <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
         <p class="text-red-700 font-semibold mb-1">Laden mislukt</p>
         <p class="text-red-500 text-sm mb-4">Controleer of de dev-server actief is en de <code>/Data</code>-map beschikbaar is.</p>
@@ -35,8 +35,10 @@
       </div>
     </div>
 
-    <main v-else class="max-w-7xl mx-auto px-4 py-6">
-      <RouterView />
+    <main v-else class="flex-1 min-h-0 overflow-y-auto">
+      <div class="max-w-7xl mx-auto px-4">
+        <RouterView />
+      </div>
     </main>
 
     <!-- Save-fout toast -->
@@ -64,7 +66,6 @@ const store = useBlauwdrukStore()
 
 const navLinks = [
   { to: '/matrix', label: 'Matrix' },
-  { to: '/modules', label: 'Modules' },
   { to: '/keywords', label: 'Keywords' },
 ]
 

@@ -1,12 +1,12 @@
 <template>
   <div>
     <!-- Actiebalk -->
-    <div class="no-print flex items-center gap-3 mb-4">
-      <RouterLink to="/modules" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+    <div class="no-print sticky top-0 z-10 bg-gray-50 pt-6 pb-3 flex items-center gap-3">
+      <RouterLink to="/matrix" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
         </svg>
-        Terug naar modules
+        Terug naar matrix
       </RouterLink>
       <div class="flex-1" />
       <button @click="doPrint" class="px-4 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-800 font-medium flex items-center gap-2">
@@ -25,7 +25,7 @@
       Klik met de rechtermuisknop op de modulenaam, een leeruitkomst of een onderwerp om te bewerken of verwijderen.
     </p>
 
-    <div v-if="module" class="print-document bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-4xl mx-auto">
+    <div v-if="module" class="print-document bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-4xl mx-auto mb-8">
 
       <!-- ── Header ── -->
       <div
