@@ -1,16 +1,14 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="sticky top-0 z-10 bg-gray-50 pt-6 pb-4 flex items-center justify-between">
       <h1 class="text-2xl font-bold text-gray-800">Keywords</h1>
       <button @click="newKeyword" class="px-4 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-800 font-medium">
         + Nieuw keyword
       </button>
     </div>
 
-
-
     <!-- Tabel -->
-    <div class="rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+    <div class="rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-8">
       <table class="w-full text-sm">
         <thead class="bg-gray-100 text-gray-700">
           <tr>
