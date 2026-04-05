@@ -94,11 +94,13 @@
 - [ ] App maakt feature branch aan in data-repo via GitHub API
 - [ ] Gewijzigde JSON-bestanden worden gecommit naar de feature branch (`PUT /repos/:owner/:repo/contents/:path`)
 - [ ] PR aanmaken via GitHub API (`POST /repos/:owner/:repo/pulls`)
+- [ ] Na aanmaken PR: app stuurt een `repository_dispatch` event naar deze repo (`mmaartijn/blauwdrukbeheer`) met als payload: PR-branch-naam + lijst van gewijzigde periode-IDs
 - [ ] Link naar de aangemaakte PR tonen in de UI
 
-### 9e – Automatische PDF-generatie via GitHub Action
-> De GitHub Action in de data-repo wordt handmatig eenmalig opgezet door de beheerder.
-- [ ] GitHub Action in data-repo: draait bij het openen/updaten van een PR
-- [ ] Action detecteert welke `periodes`-gerelateerde JSONs zijn gewijzigd
-- [ ] Voor elke gewijzigde module: genereer PDF van de modulebeschrijving (bijv. via Puppeteer/headless Chrome die de GitHub Pages URL rendert)
-- [ ] PDFs worden gecommit naar de feature branch van de PR (zodat ze mee-mergen naar `main`)
+### 9e – Automatische PDF-generatie via GitHub Action (in deze repo)
+> De GitHub Action staat in `mmaartijn/blauwdrukbeheer` (`.github/workflows/generate-pdf.yml`). Hij wordt getriggerd door een `repository_dispatch` event vanuit de app (zie 9d). Een PAT of GitHub App token is nodig om te kunnen committen naar de data-repo.
+- [ ] `generate-pdf.yml` workflow aanmaken; trigger: `repository_dispatch` met `event-type: generate-module-pdfs`
+- [ ] Action leest de payload: feature branch-naam en lijst van gewijzigde periode-IDs
+- [ ] Action installeert Puppeteer/Chromium en rendert voor elke gewijzigde module de GitHub Pages URL (`/modules/:periodeId`)
+- [ ] Gegenereerde PDFs worden via GitHub API gecommit naar de feature branch in de data-repo
+- [ ] PDFs zitten daarmee in de PR en mergen mee naar `main` van de data-repo
