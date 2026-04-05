@@ -65,3 +65,40 @@
 - [x] Info-hint boven de kaart legt rechtermuisklik-interactie uit.
 - [x] Bug opgelost: contextmenu sloot te vroeg door `mousedown`-timing; opgelost met `@mousedown.stop`.
 - [x] Matrix: portefeuilles standaard uit, categorieën standaard uitgeklapt; vaste labelbreedtes; dash/vinkje toggle in portefeuilleклeur; Bloom-badges zonder gekleurde itemranden.
+
+## Fase 9 – GitHub Pages + GitHub Data Sync
+> Doel: de app volledig statisch hosten via GitHub Pages en JSON-data beheren in een aparte, gebruiker-gekozen GitHub-repo via de GitHub API. Wijzigingen lopen altijd via een feature branch + PR. PDFs worden automatisch gegenereerd door een GitHub Action in de data-repo.
+
+### 9a – Static build & GitHub Pages deployment
+- [ ] `vite.config.ts` aanpassen voor correcte `base`-pad op GitHub Pages (bijv. `/blauwdrukbeheer/`)
+- [ ] GitHub Actions workflow toevoegen in `.github/workflows/deploy.yml`: bij push naar `main` → `npm run build` → deploy naar `gh-pages` branch
+- [ ] Vite data-middleware verwijderen (niet meer nodig in productie)
+- [ ] Pinia stores omschrijven: JSON-data niet meer via `POST /data/...` maar via GitHub API + localStorage-cache
+
+### 9b – GitHub OAuth (Device Auth Flow)
+- [ ] `config.json` toevoegen aan repo root met `githubClientId` (en eventueel andere instellingen)
+- [ ] `GitHubAuthService` composable: implementeer Device Auth Flow (`/login/device/code` → polling `/login/oauth/access_token`)
+- [ ] Inlogpagina (`/instellingen` of `/login`): toon device code + verificatie-URL, wacht op autorisatie
+- [ ] Token opslaan in localStorage; bij aanwezig token: automatisch ingelogd
+- [ ] Uitlogknop + token wissen
+
+### 9c – Data-repo configuratie & JSON synchronisatie
+- [ ] Instellingenpagina: gebruiker kan GitHub-gebruikersnaam + repo-naam invoeren en opslaan (localStorage)
+- [ ] `GitHubDataService` composable: haal JSON-bestanden op via GitHub Contents API (`GET /repos/:owner/:repo/contents/:path`)
+- [ ] Bij opstarten: JSON-data laden vanuit GitHub API → cachen in localStorage (als fallback bij offline)
+- [ ] "Vernieuwen"-knop om data opnieuw te fetchen van GitHub
+
+### 9d – Wijzigingen committen via feature branch + PR
+- [ ] Wijzigingen in de app worden bijgehouden (dirty tracking per JSON-bestand)
+- [ ] "Wijzigingen publiceren"-knop opent een dialoog: branch-naam invoeren + PR-beschrijving
+- [ ] App maakt feature branch aan in data-repo via GitHub API
+- [ ] Gewijzigde JSON-bestanden worden gecommit naar de feature branch (`PUT /repos/:owner/:repo/contents/:path`)
+- [ ] PR aanmaken via GitHub API (`POST /repos/:owner/:repo/pulls`)
+- [ ] Link naar de aangemaakte PR tonen in de UI
+
+### 9e – Automatische PDF-generatie via GitHub Action
+> De GitHub Action in de data-repo wordt handmatig eenmalig opgezet door de beheerder.
+- [ ] GitHub Action in data-repo: draait bij het openen/updaten van een PR
+- [ ] Action detecteert welke `periodes`-gerelateerde JSONs zijn gewijzigd
+- [ ] Voor elke gewijzigde module: genereer PDF van de modulebeschrijving (bijv. via Puppeteer/headless Chrome die de GitHub Pages URL rendert)
+- [ ] PDFs worden gecommit naar de feature branch van de PR (zodat ze mee-mergen naar `main`)
