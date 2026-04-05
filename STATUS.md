@@ -94,13 +94,12 @@
 - [ ] App maakt feature branch aan in data-repo via GitHub API
 - [ ] Gewijzigde JSON-bestanden worden gecommit naar de feature branch (`PUT /repos/:owner/:repo/contents/:path`)
 - [ ] PR aanmaken via GitHub API (`POST /repos/:owner/:repo/pulls`)
-- [ ] Na aanmaken PR: app stuurt een `repository_dispatch` event naar deze repo (`mmaartijn/blauwdrukbeheer`) met als payload: PR-branch-naam + lijst van gewijzigde periode-IDs
 - [ ] Link naar de aangemaakte PR tonen in de UI
 
-### 9e – Automatische PDF-generatie via GitHub Action (in deze repo)
-> De GitHub Action staat in `mmaartijn/blauwdrukbeheer` (`.github/workflows/generate-pdf.yml`). Hij wordt getriggerd door een `repository_dispatch` event vanuit de app (zie 9d). Een PAT of GitHub App token is nodig om te kunnen committen naar de data-repo.
-- [ ] `generate-pdf.yml` workflow aanmaken; trigger: `repository_dispatch` met `event-type: generate-module-pdfs`
-- [ ] Action leest de payload: feature branch-naam en lijst van gewijzigde periode-IDs
-- [ ] Action installeert Puppeteer/Chromium en rendert voor elke gewijzigde module de GitHub Pages URL (`/modules/:periodeId`)
-- [ ] Gegenereerde PDFs worden via GitHub API gecommit naar de feature branch in de data-repo
+### 9e – Client-side PDF-generatie en committen naar data-repo
+> Volledig in de browser, geen GitHub Actions. De app-repo hoeft de data-repo niet te kennen. PDFs worden gegenereerd vóór het aanmaken van de PR en meegecommit in dezelfde feature branch.
+- [ ] `html2canvas` + `jsPDF` installeren als dependencies
+- [ ] `usePdfExport` composable: rendert een (tijdelijk/verborgen) `ModuleDetailView` voor elke gewijzigde module en genereert hiervan een PDF als base64-string
+- [ ] PDF-bestand(en) worden als extra bestand(en) meegecommit naar de feature branch via de GitHub Contents API (base64-content), samen met de gewijzigde JSONs
 - [ ] PDFs zitten daarmee in de PR en mergen mee naar `main` van de data-repo
+- [ ] Geen GitHub Actions, geen koppeling tussen de repos
