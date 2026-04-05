@@ -96,9 +96,10 @@
 - [ ] PR aanmaken via GitHub API (`POST /repos/:owner/:repo/pulls`)
 - [ ] Link naar de aangemaakte PR tonen in de UI
 
-### 9e – Automatische PDF-generatie via GitHub Action
-> De GitHub Action in de data-repo wordt handmatig eenmalig opgezet door de beheerder.
-- [ ] GitHub Action in data-repo: draait bij het openen/updaten van een PR
-- [ ] Action detecteert welke `periodes`-gerelateerde JSONs zijn gewijzigd
-- [ ] Voor elke gewijzigde module: genereer PDF van de modulebeschrijving (bijv. via Puppeteer/headless Chrome die de GitHub Pages URL rendert)
-- [ ] PDFs worden gecommit naar de feature branch van de PR (zodat ze mee-mergen naar `main`)
+### 9e – Client-side PDF-generatie en committen naar data-repo
+> Volledig in de browser, geen GitHub Actions. De app-repo hoeft de data-repo niet te kennen. PDFs worden gegenereerd vóór het aanmaken van de PR en meegecommit in dezelfde feature branch.
+- [ ] `html2canvas` + `jsPDF` installeren als dependencies
+- [ ] `usePdfExport` composable: rendert een (tijdelijk/verborgen) `ModuleDetailView` voor elke gewijzigde module en genereert hiervan een PDF als base64-string
+- [ ] PDF-bestand(en) worden als extra bestand(en) meegecommit naar de feature branch via de GitHub Contents API (base64-content), samen met de gewijzigde JSONs
+- [ ] PDFs zitten daarmee in de PR en mergen mee naar `main` van de data-repo
+- [ ] Geen GitHub Actions, geen koppeling tussen de repos
