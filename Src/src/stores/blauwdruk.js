@@ -42,7 +42,14 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     isLoading.value = false
   }
 
-  async function loadFromGitHub() {
+  /**
+   * Laadt van GitHub. Dirty bestanden (lokale wijzigingen nog niet gepubliceerd)
+   * worden NIET overschreven — de localStorage-versie blijft leidend voor die bestanden.
+   * SHA's worden altijd bijgehouden op basis van de GitHub-versie (nodig voor commits).
+   *
+   * discardDirty: true → wis dirty state vóór laden (gebruikt door refreshFromGitHub)
+   */
+  async function loadFromGitHub({ discardDirty = false } = {}) {
     const gh = useGitHubData()
     try {
       const [p, pf, kw, lu] = await Promise.all([
@@ -51,21 +58,40 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
         gh.fetchJsonFile(DATA_FILES.KEYWORDS),
         gh.fetchJsonFile(DATA_FILES.LEERUITKOMSTEN),
       ])
-      periodes.value = p.data
-      portefeuilles.value = pf.data
-      keywords.value = kw.data
-      leeruitkomsten.value = lu.data
 
+      // SHA's altijd bijwerken op basis van GitHub (nodig bij latere commits)
       fileShas.value = {
         [DATA_FILES.PERIODES]: p.sha,
         [DATA_FILES.PORTEFEUILLES]: pf.sha,
         [DATA_FILES.KEYWORDS]: kw.sha,
         [DATA_FILES.LEERUITKOMSTEN]: lu.sha,
       }
-
-      saveToCache()
       localStorage.setItem(CACHE_KEYS.SHAS, JSON.stringify(fileShas.value))
-      dirtyFiles.value = new Set()
+
+      const persisted = discardDirty
+        ? new Set()
+        : new Set(JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]'))
+
+      // Niet-dirty bestanden: overschrijven met GitHub-versie
+      // Dirty bestanden: lokale cache-versie bewaren
+      const restore = (file, githubData, cacheKey, ref) => {
+        if (persisted.has(file)) {
+          const cached = localStorage.getItem(cacheKey)
+          if (cached) ref.value = JSON.parse(cached)
+        } else {
+          ref.value = githubData
+          localStorage.setItem(cacheKey, JSON.stringify(githubData))
+        }
+      }
+
+      restore(DATA_FILES.PERIODES,      p.data,  CACHE_KEYS.PERIODES,      periodes)
+      restore(DATA_FILES.PORTEFEUILLES, pf.data, CACHE_KEYS.PORTEFEUILLES, portefeuilles)
+      restore(DATA_FILES.KEYWORDS,      kw.data, CACHE_KEYS.KEYWORDS,      keywords)
+      restore(DATA_FILES.LEERUITKOMSTEN, lu.data, CACHE_KEYS.LEERUITKOMSTEN, leeruitkomsten)
+
+      dirtyFiles.value = persisted
+      if (discardDirty) localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
+
       hasUpdates.value = false
       updateStatus.value = {}
     } catch (e) {
@@ -82,26 +108,23 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     const kw = localStorage.getItem(CACHE_KEYS.KEYWORDS)
     const lu = localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN)
     if (p && pf && kw && lu) {
-      periodes.value      = JSON.parse(p)
-      portefeuilles.value = JSON.parse(pf)
-      keywords.value      = JSON.parse(kw)
+      periodes.value       = JSON.parse(p)
+      portefeuilles.value  = JSON.parse(pf)
+      keywords.value       = JSON.parse(kw)
       leeruitkomsten.value = JSON.parse(lu)
+      // Dirty state herstellen zodat de badge en publiceer-knop correct zijn na refresh
+      const persisted = JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]')
+      dirtyFiles.value = new Set(persisted)
       return true
     }
     return false
   }
 
-  function saveToCache() {
-    localStorage.setItem(CACHE_KEYS.PERIODES,      JSON.stringify(periodes.value))
-    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES, JSON.stringify(portefeuilles.value))
-    localStorage.setItem(CACHE_KEYS.KEYWORDS,      JSON.stringify(keywords.value))
-    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify(leeruitkomsten.value))
-  }
-
+  // "Laatste versie ophalen" — wist bewust lokale wijzigingen en laadt vers van GitHub
   async function refreshFromGitHub() {
     isLoading.value = true
     hasError.value = false
-    await loadFromGitHub()
+    await loadFromGitHub({ discardDirty: true })
     isLoading.value = false
   }
 
@@ -141,14 +164,19 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
 
   // ── Opslaan (cache + dirty tracking) ─────────────────────────────────────
 
+  function persistDirty(file) {
+    dirtyFiles.value = new Set([...dirtyFiles.value, file])
+    localStorage.setItem(CACHE_KEYS.DIRTY_FILES, JSON.stringify([...dirtyFiles.value]))
+  }
+
   function saveKeywords() {
-    dirtyFiles.value = new Set([...dirtyFiles.value, DATA_FILES.KEYWORDS])
     localStorage.setItem(CACHE_KEYS.KEYWORDS, JSON.stringify(keywords.value))
+    persistDirty(DATA_FILES.KEYWORDS)
   }
 
   function saveLeeruitkomsten() {
-    dirtyFiles.value = new Set([...dirtyFiles.value, DATA_FILES.LEERUITKOMSTEN])
     localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify(leeruitkomsten.value))
+    persistDirty(DATA_FILES.LEERUITKOMSTEN)
   }
 
   // ── Publiceren naar GitHub via PR ─────────────────────────────────────────
@@ -183,6 +211,7 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
 
     const pr = await gh.createPR(prTitle, prBody || '', branchName)
     dirtyFiles.value = new Set()
+    localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
     return pr.html_url
   }
 

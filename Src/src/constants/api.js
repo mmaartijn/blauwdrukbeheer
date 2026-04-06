@@ -15,6 +15,9 @@ export const CACHE_KEYS = {
   // Blob-SHA's van de bestanden die we als laatste van GitHub hebben geladen.
   // Formaat: JSON-object { 'keywords.json': 'abc123', ... }
   SHAS: 'blauwdruk_cache_shas',
+  // Bestanden met lokale wijzigingen die nog niet gepubliceerd zijn.
+  // Formaat: JSON-array ['keywords.json', ...]
+  DIRTY_FILES: 'blauwdruk_dirty_files',
 }
 
 // localStorage-sleutels voor GitHub-instellingen

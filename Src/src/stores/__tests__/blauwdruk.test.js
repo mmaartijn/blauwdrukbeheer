@@ -36,6 +36,13 @@ describe('addKeyword', () => {
     expect(store.dirtyFiles.has(DATA_FILES.KEYWORDS)).toBe(true)
   })
 
+  it('persisteert dirty state in localStorage', () => {
+    const store = useBlauwdrukStore()
+    store.addKeyword({ id: 'kw-1', naam: 'SQL' })
+    const dirty = JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES))
+    expect(dirty).toContain(DATA_FILES.KEYWORDS)
+  })
+
   it('slaat de keywords op in de localStorage-cache', () => {
     const store = useBlauwdrukStore()
     store.addKeyword({ id: 'kw-1', naam: 'SQL' })
@@ -251,6 +258,31 @@ describe('deleteLeeruitkomst', () => {
 // ── loadAll ──────────────────────────────────────────────────────────────────
 
 describe('loadAll', () => {
+  it('bewaart dirty wijzigingen bij reload van GitHub (overschrijft ze niet)', async () => {
+    localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
+    localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
+
+    // Simuleer: gebruiker had een keyword toegevoegd vóór de refresh
+    const localKeywords = [{ id: 'kw-lokaal', naam: 'Lokale wijziging' }]
+    localStorage.setItem(CACHE_KEYS.KEYWORDS, JSON.stringify(localKeywords))
+    localStorage.setItem(CACHE_KEYS.DIRTY_FILES, JSON.stringify([DATA_FILES.KEYWORDS]))
+
+    // GitHub geeft een andere versie terug
+    const githubKeywords = [{ id: 'kw-github', naam: 'GitHub versie' }]
+    mockFetch
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-p'))
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-pf'))
+      .mockResolvedValueOnce(makeGitHubFileResponse(githubKeywords, 'sha-kw'))
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-lu'))
+
+    const store = useBlauwdrukStore()
+    await store.loadAll()
+
+    // De lokale versie moet bewaard zijn
+    expect(store.keywords).toEqual(localKeywords)
+    expect(store.dirtyFiles.has(DATA_FILES.KEYWORDS)).toBe(true)
+  })
+
   it('zet hasError als geen repo geconfigureerd en geen cache beschikbaar', async () => {
     const store = useBlauwdrukStore()
     await store.loadAll()
