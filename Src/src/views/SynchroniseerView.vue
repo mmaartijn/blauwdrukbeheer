@@ -1,0 +1,176 @@
+<template>
+  <div class="py-8 max-w-xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">Synchroniseer</h1>
+
+    <!-- Niet geconfigureerd -->
+    <div v-if="!isConfigured" class="bg-amber-50 border border-amber-200 rounded-xl p-6 space-y-3">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-amber-800">Geen data-repository ingesteld</p>
+          <p class="text-sm text-amber-700">
+            Om te synchroniseren moet je eerst een GitHub-repository en toegangstoken instellen.
+          </p>
+        </div>
+      </div>
+      <RouterLink
+        to="/instellingen"
+        class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 underline"
+      >
+        Ga naar Instellingen
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </RouterLink>
+    </div>
+
+    <!-- Geconfigureerd -->
+    <template v-else>
+
+      <!-- Status-kaart -->
+      <div
+        class="rounded-xl border p-6 space-y-4"
+        :class="statusCardClass"
+      >
+        <!-- Laden -->
+        <div v-if="checking" class="flex items-center gap-3 text-sm text-gray-500">
+          <svg class="w-5 h-5 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+          Controleren op updates…
+        </div>
+
+        <!-- Nooit gesynchroniseerd -->
+        <div v-else-if="neverSynced" class="space-y-1">
+          <p class="text-sm font-semibold text-gray-700">Nog niet gesynchroniseerd</p>
+          <p class="text-sm text-gray-500">
+            Er is nog geen lokale versie van de data opgeslagen.
+            Haal de laatste versie op om te beginnen.
+          </p>
+        </div>
+
+        <!-- Up-to-date -->
+        <div v-else-if="!store.hasUpdates" class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-sm font-semibold text-green-700">Je hebt de meest recente versie</p>
+        </div>
+
+        <!-- Updates beschikbaar -->
+        <div v-else class="space-y-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 102 0V7zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-sm font-semibold text-amber-700">Er is een nieuwere versie beschikbaar op GitHub</p>
+          </div>
+
+          <!-- Per-bestand status -->
+          <ul class="space-y-1.5">
+            <li
+              v-for="(status, file) in store.updateStatus"
+              :key="file"
+              class="flex items-center gap-2 text-xs"
+            >
+              <span
+                class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                :class="status.hasUpdate ? 'bg-amber-400' : 'bg-green-400'"
+              ></span>
+              <span class="font-mono text-gray-700">{{ file }}</span>
+              <span :class="status.hasUpdate ? 'text-amber-600' : 'text-green-600'">
+                {{ status.hasUpdate ? 'gewijzigd op GitHub' : 'up-to-date' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Knop: Laatste versie ophalen -->
+        <div v-if="!checking" class="pt-1 flex items-center gap-3">
+          <button
+            @click="syncFromGitHub"
+            :disabled="syncing"
+            class="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            :class="store.hasUpdates || neverSynced
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'"
+          >
+            {{ syncing ? 'Ophalen…' : 'Laatste versie ophalen' }}
+          </button>
+          <button
+            v-if="!syncing"
+            @click="runCheck"
+            class="text-xs text-gray-400 hover:text-gray-600 underline"
+          >
+            Opnieuw controleren
+          </button>
+        </div>
+
+        <p v-if="syncError" class="text-sm text-red-600">{{ syncError }}</p>
+      </div>
+
+      <!-- Repo-info -->
+      <p class="text-xs text-gray-400">
+        Repository:
+        <span class="font-mono text-gray-600">{{ owner }}/{{ repo }}</span>
+      </p>
+    </template>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useBlauwdrukStore } from '@/stores/blauwdruk'
+import { SETTINGS_KEYS, CACHE_KEYS } from '@/constants/api'
+
+const store = useBlauwdrukStore()
+
+const owner = localStorage.getItem(SETTINGS_KEYS.GH_OWNER) || ''
+const repo  = localStorage.getItem(SETTINGS_KEYS.GH_REPO)  || ''
+
+const isConfigured = computed(() => !!(owner && repo))
+const neverSynced  = computed(() => {
+  const shas = localStorage.getItem(CACHE_KEYS.SHAS)
+  return !shas || Object.keys(JSON.parse(shas)).length === 0
+})
+
+const checking  = ref(false)
+const syncing   = ref(false)
+const syncError = ref(null)
+
+const statusCardClass = computed(() => {
+  if (checking.value)                         return 'border-gray-200 bg-white'
+  if (neverSynced.value)                      return 'border-gray-200 bg-gray-50'
+  if (store.hasUpdates)                       return 'border-amber-200 bg-amber-50'
+  return 'border-green-200 bg-green-50'
+})
+
+async function runCheck() {
+  checking.value = true
+  await store.checkForUpdates()
+  checking.value = false
+}
+
+async function syncFromGitHub() {
+  syncing.value = true
+  syncError.value = null
+  try {
+    await store.refreshFromGitHub()
+    await store.checkForUpdates()
+  } catch (e) {
+    syncError.value = e.message
+  } finally {
+    syncing.value = false
+  }
+}
+
+onMounted(async () => {
+  if (isConfigured.value) {
+    await runCheck()
+  }
+})
+</script>

@@ -1,13 +1,22 @@
 import { setActivePinia, createPinia } from 'pinia'
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { useBlauwdrukStore } from '../blauwdruk'
+import { CACHE_KEYS, DATA_FILES, SETTINGS_KEYS } from '@/constants/api'
 
-const mockFetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve([]) }))
+// Helpers om GitHub API-responses te simuleren
+function makeGitHubFileResponse(data, sha = 'abc123') {
+  const content = btoa(JSON.stringify(data))
+  return { ok: true, json: () => Promise.resolve({ content, sha }) }
+}
+
+
+const mockFetch = vi.fn()
 
 beforeEach(() => {
   setActivePinia(createPinia())
   vi.stubGlobal('fetch', mockFetch)
-  mockFetch.mockClear()
+  mockFetch.mockReset()
+  localStorage.clear()
 })
 
 // ── addKeyword ───────────────────────────────────────────────────────────────
@@ -21,21 +30,18 @@ describe('addKeyword', () => {
     expect(store.keywords[0]).toEqual(kw)
   })
 
-  it('slaat op via fetch na toevoegen', () => {
+  it('markeert keywords.json als dirty', () => {
     const store = useBlauwdrukStore()
     store.addKeyword({ id: 'kw-1', naam: 'SQL', bloom: 2 })
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/data/keywords.json',
-      expect.objectContaining({ method: 'POST' }),
-    )
+    expect(store.dirtyFiles.has(DATA_FILES.KEYWORDS)).toBe(true)
   })
 
-  it('verstuurt valide JSON als body', () => {
+  it('slaat de keywords op in de localStorage-cache', () => {
     const store = useBlauwdrukStore()
     store.addKeyword({ id: 'kw-1', naam: 'SQL' })
-    const body = mockFetch.mock.calls[0][1].body
-    expect(() => JSON.parse(body)).not.toThrow()
-    expect(JSON.parse(body)).toEqual([{ id: 'kw-1', naam: 'SQL' }])
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.KEYWORDS))
+    expect(cached).toHaveLength(1)
+    expect(cached[0].naam).toBe('SQL')
   })
 
   it('meerdere keywords worden allemaal bewaard', () => {
@@ -65,13 +71,13 @@ describe('updateKeyword', () => {
     ]
     store.updateKeyword({ id: 'kw-1', naam: 'SQL Advanced', bloom: 4 })
     expect(store.keywords[0]).toEqual({ id: 'kw-1', naam: 'SQL Advanced', bloom: 4 })
-    expect(store.keywords[1].naam).toBe('NoSQL') // andere ongewijzigd
+    expect(store.keywords[1].naam).toBe('NoSQL')
   })
 
   it('vervangt het volledige object, niet alleen gewijzigde velden', () => {
     const store = useBlauwdrukStore()
     store.keywords = [{ id: 'kw-1', naam: 'SQL', bloom: 2, toelichting: 'oud' }]
-    store.updateKeyword({ id: 'kw-1', naam: 'SQL', bloom: 2 }) // toelichting weggelaten
+    store.updateKeyword({ id: 'kw-1', naam: 'SQL', bloom: 2 })
     expect(store.keywords[0].toelichting).toBeUndefined()
   })
 
@@ -83,27 +89,24 @@ describe('updateKeyword', () => {
     expect(store.keywords[0].naam).toBe('SQL')
   })
 
-  it('slaat op via fetch na bewerken', () => {
+  it('markeert keywords.json als dirty na bewerken', () => {
     const store = useBlauwdrukStore()
     store.keywords = [{ id: 'kw-1', naam: 'SQL' }]
     store.updateKeyword({ id: 'kw-1', naam: 'SQL Advanced' })
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/data/keywords.json',
-      expect.objectContaining({ method: 'POST' }),
-    )
+    expect(store.dirtyFiles.has(DATA_FILES.KEYWORDS)).toBe(true)
   })
 
-  it('verstuurt de volledige bijgewerkte lijst als body', () => {
+  it('slaat de bijgewerkte lijst op in de cache', () => {
     const store = useBlauwdrukStore()
     store.keywords = [
       { id: 'kw-1', naam: 'SQL' },
       { id: 'kw-2', naam: 'NoSQL' },
     ]
     store.updateKeyword({ id: 'kw-1', naam: 'SQL Advanced' })
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-    expect(body).toHaveLength(2)
-    expect(body[0].naam).toBe('SQL Advanced')
-    expect(body[1].naam).toBe('NoSQL')
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.KEYWORDS))
+    expect(cached).toHaveLength(2)
+    expect(cached[0].naam).toBe('SQL Advanced')
+    expect(cached[1].naam).toBe('NoSQL')
   })
 })
 
@@ -141,12 +144,12 @@ describe('deleteKeyword', () => {
     expect(() => store.deleteKeyword('kw-1')).not.toThrow()
   })
 
-  it('slaat de bijgewerkte lege lijst op via fetch', () => {
+  it('slaat de bijgewerkte lege lijst op in de cache', () => {
     const store = useBlauwdrukStore()
     store.keywords = [{ id: 'kw-1', naam: 'SQL' }]
     store.deleteKeyword('kw-1')
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-    expect(body).toEqual([])
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.KEYWORDS))
+    expect(cached).toEqual([])
   })
 })
 
@@ -161,21 +164,17 @@ describe('addLeeruitkomst', () => {
     expect(store.leeruitkomsten[0]).toEqual(lu)
   })
 
-  it('slaat op via fetch na toevoegen', () => {
+  it('markeert leeruitkomsten.json als dirty', () => {
     const store = useBlauwdrukStore()
     store.addLeeruitkomst({ id: 'lu-1', naam: 'Test' })
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/data/leeruitkomsten.json',
-      expect.objectContaining({ method: 'POST' }),
-    )
+    expect(store.dirtyFiles.has(DATA_FILES.LEERUITKOMSTEN)).toBe(true)
   })
 
-  it('verstuurt valide JSON als body', () => {
+  it('slaat de leeruitkomsten op in de cache', () => {
     const store = useBlauwdrukStore()
     store.addLeeruitkomst({ id: 'lu-1', naam: 'Test', ec: 10 })
-    const body = mockFetch.mock.calls[0][1].body
-    expect(() => JSON.parse(body)).not.toThrow()
-    expect(JSON.parse(body)[0].ec).toBe(10)
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN))
+    expect(cached[0].ec).toBe(10)
   })
 
   it('bewaart leeruitkomst met lege arrays voor optionele velden', () => {
@@ -207,17 +206,17 @@ describe('updateLeeruitkomst', () => {
     expect(store.leeruitkomsten[0].naam).toBe('Test')
   })
 
-  it('verstuurt de volledige bijgewerkte lijst', () => {
+  it('slaat de bijgewerkte lijst op in de cache', () => {
     const store = useBlauwdrukStore()
     store.leeruitkomsten = [
       { id: 'lu-1', naam: 'Full Stack', ec: 15 },
       { id: 'lu-2', naam: 'Security', ec: 10 },
     ]
     store.updateLeeruitkomst({ id: 'lu-1', naam: 'Full Stack Pro', ec: 20 })
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-    expect(body).toHaveLength(2)
-    expect(body[0].naam).toBe('Full Stack Pro')
-    expect(body[1].naam).toBe('Security')
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN))
+    expect(cached).toHaveLength(2)
+    expect(cached[0].naam).toBe('Full Stack Pro')
+    expect(cached[1].naam).toBe('Security')
   })
 })
 
@@ -252,17 +251,39 @@ describe('deleteLeeruitkomst', () => {
 // ── loadAll ──────────────────────────────────────────────────────────────────
 
 describe('loadAll', () => {
-  it('laadt alle data in de store-refs', async () => {
-    const periodes = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
+  it('zet hasError als geen repo geconfigureerd en geen cache beschikbaar', async () => {
+    const store = useBlauwdrukStore()
+    await store.loadAll()
+    expect(store.hasError).toBe(true)
+  })
+
+  it('laadt vanuit cache als repo niet geconfigureerd maar cache beschikbaar is', async () => {
+    localStorage.setItem(CACHE_KEYS.PERIODES,       JSON.stringify([{ id: 'p1' }]))
+    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES,  JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.KEYWORDS,       JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify([]))
+
+    const store = useBlauwdrukStore()
+    await store.loadAll()
+
+    expect(store.periodes).toEqual([{ id: 'p1' }])
+    expect(store.hasError).toBe(false)
+  })
+
+  it('laadt van GitHub als repo geconfigureerd', async () => {
+    localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
+    localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
+
+    const periodes      = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
     const portefeuilles = [{ id: 'db', label: 'Databases' }]
-    const keywords = [{ id: 'kw-1', naam: 'SQL' }]
+    const keywords      = [{ id: 'kw-1', naam: 'SQL' }]
     const leeruitkomsten = [{ id: 'lu-1', naam: 'Full Stack' }]
 
     mockFetch
-      .mockResolvedValueOnce({ json: () => Promise.resolve(periodes) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(portefeuilles) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(keywords) })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(leeruitkomsten) })
+      .mockResolvedValueOnce(makeGitHubFileResponse(periodes,       'sha-p'))
+      .mockResolvedValueOnce(makeGitHubFileResponse(portefeuilles,  'sha-pf'))
+      .mockResolvedValueOnce(makeGitHubFileResponse(keywords,       'sha-kw'))
+      .mockResolvedValueOnce(makeGitHubFileResponse(leeruitkomsten, 'sha-lu'))
 
     const store = useBlauwdrukStore()
     await store.loadAll()
@@ -271,23 +292,53 @@ describe('loadAll', () => {
     expect(store.portefeuilles).toEqual(portefeuilles)
     expect(store.keywords).toEqual(keywords)
     expect(store.leeruitkomsten).toEqual(leeruitkomsten)
+    expect(store.hasError).toBe(false)
   })
 
-  it('roept de vier json-endpoints aan', async () => {
+  it('slaat geladen SHA\'s op in localStorage na GitHub-laad', async () => {
+    localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
+    localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
+
+    mockFetch
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-p'))
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-pf'))
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-kw'))
+      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-lu'))
+
     const store = useBlauwdrukStore()
     await store.loadAll()
 
-    const urls = mockFetch.mock.calls.map(c => c[0])
-    expect(urls).toContain('/data/periodes.json')
-    expect(urls).toContain('/data/portefeuilles.json')
-    expect(urls).toContain('/data/keywords.json')
-    expect(urls).toContain('/data/leeruitkomsten.json')
+    const shas = JSON.parse(localStorage.getItem(CACHE_KEYS.SHAS))
+    expect(shas[DATA_FILES.KEYWORDS]).toBe('sha-kw')
+    expect(shas[DATA_FILES.LEERUITKOMSTEN]).toBe('sha-lu')
   })
 
-  it('zet hasError op true wanneer een fetch mislukt', async () => {
+  it('valt terug op cache als GitHub mislukt', async () => {
+    localStorage.setItem(SETTINGS_KEYS.GH_OWNER,       'testowner')
+    localStorage.setItem(SETTINGS_KEYS.GH_REPO,        'testrepo')
+    localStorage.setItem(CACHE_KEYS.PERIODES,           JSON.stringify([{ id: 'cached' }]))
+    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES,      JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.KEYWORDS,           JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN,     JSON.stringify([]))
+
     mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
+
     const store = useBlauwdrukStore()
     await store.loadAll()
+
+    expect(store.periodes).toEqual([{ id: 'cached' }])
+    expect(store.hasError).toBe(false)
+  })
+
+  it('zet hasError als GitHub mislukt en geen cache beschikbaar', async () => {
+    localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
+    localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
+
+    mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
+
+    const store = useBlauwdrukStore()
+    await store.loadAll()
+
     expect(store.hasError).toBe(true)
   })
 })

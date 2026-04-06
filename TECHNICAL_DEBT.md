@@ -8,6 +8,31 @@ Per nieuwe audit-ronde een nieuwe sectie toevoegen, met de datum van de audit. Z
 
 ---
 
+## Audit: 2026-04-05
+
+### P1 – Hoge prioriteit
+
+- [ ] 🔴 **GitHub Device Auth Flow werkt niet in alle browsers (CORS)**
+  `POST https://github.com/login/oauth/access_token` retourneert geen CORS-headers voor browser-requests. De `pollForToken`-functie in `useGitHubAuth.js` zal in de meeste browsers falen. De PAT-invoer op de instellingenpagina werkt wél. Oplossing: een serverless proxy (bijv. Cloudflare Worker) die de token-exchange doet.
+
+- [ ] 🔴 **Bestandsnaam voor commits hardgecodeerd als één commit per bestand**
+  `publishChanges()` in de store stuurt per dirty bestand één commit. De SHA wordt daarna niet hergebruikt; bij meerdere bestanden wordt de SHA steeds opnieuw opgehaald (extra API-calls). Overweeg Git Tree API voor atomische multi-file commits.
+
+### P2 – Middel
+
+- [ ] 🟡 **`dirtyFiles` is geen reactive Set in Vue 3**
+  `ref(new Set())` triggert Vue niet automatisch bij `.add()` of `.delete()`. Workaround: `dirtyFiles.value = new Set([...dirtyFiles.value, fileName])`. Overweeg `shallowRef` of een array om dit natuurlijker te maken.
+
+- [ ] 🟡 **Geen validatie van GitHub-repo bij opslaan instellingen**
+  De instellingenpagina slaat owner/repo op zonder te verifiëren dat de repo bestaat en bereikbaar is. Voeg een "verbinding testen"-knop toe.
+
+### P3 – Laag
+
+- [ ] 🟢 **`Src/public/config.json` bevat lege `githubClientId`**
+  Moet gevuld worden door de beheerder vóór deployment. Niet gedocumenteerd in de UI. Voeg een duidelijke prompt toe als `githubClientId` leeg is én de Device Flow wordt gestart (zit er al gedeeltelijk in).
+
+---
+
 ## Audit: 2026-04-03
 
 ### P0 – Direct actie vereist
