@@ -41,8 +41,12 @@ export function useGitHubData() {
     const res = await fetch(url.toString(), { headers: apiHeaders() })
     if (!res.ok) throw new Error(`GitHub API fout bij ${filePath}: ${res.status}`)
     const body = await res.json()
-    // Content is base64-encoded inclusief newlines
-    const decoded = JSON.parse(atob(body.content.replace(/\n/g, '')))
+    // atob geeft een binaire string met bytes als char-codes (Latin-1).
+    // Gebruik een expliciete byte-loop + TextDecoder om correct als UTF-8 te decoderen.
+    const binary = atob(body.content.replace(/\n/g, ''))
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const decoded = JSON.parse(new TextDecoder('utf-8').decode(bytes))
     return { data: decoded, sha: body.sha }
   }
 

@@ -102,16 +102,39 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     }
   }
 
+  /**
+   * Herstelt mojibake in gecachede data: UTF-8-bytes die abusievelijk als Latin-1 zijn
+   * opgeslagen (bijv. ë → Ã«). De charCodes van die Latin-1-chars vormen samen geldige
+   * UTF-8; TextDecoder decodeert ze dan terug naar het juiste teken.
+   * Strings die al correct zijn (charCode > 127 maar geen geldige UTF-8-reeks) gooien
+   * een fout en worden ongewijzigd teruggegeven.
+   */
+  function repairMojibake(val) {
+    if (typeof val === 'string') {
+      try {
+        const bytes = Uint8Array.from(val, c => c.charCodeAt(0))
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+      } catch {
+        return val
+      }
+    }
+    if (Array.isArray(val)) return val.map(repairMojibake)
+    if (val && typeof val === 'object') {
+      return Object.fromEntries(Object.entries(val).map(([k, v]) => [k, repairMojibake(v)]))
+    }
+    return val
+  }
+
   function loadFromCache() {
     const p  = localStorage.getItem(CACHE_KEYS.PERIODES)
     const pf = localStorage.getItem(CACHE_KEYS.PORTEFEUILLES)
     const kw = localStorage.getItem(CACHE_KEYS.KEYWORDS)
     const lu = localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN)
     if (p && pf && kw && lu) {
-      periodes.value       = JSON.parse(p)
-      portefeuilles.value  = JSON.parse(pf)
-      keywords.value       = JSON.parse(kw)
-      leeruitkomsten.value = JSON.parse(lu)
+      periodes.value       = repairMojibake(JSON.parse(p))
+      portefeuilles.value  = repairMojibake(JSON.parse(pf))
+      keywords.value       = repairMojibake(JSON.parse(kw))
+      leeruitkomsten.value = repairMojibake(JSON.parse(lu))
       // Dirty state herstellen zodat de badge en publiceer-knop correct zijn na refresh
       const persisted = JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]')
       dirtyFiles.value = new Set(persisted)

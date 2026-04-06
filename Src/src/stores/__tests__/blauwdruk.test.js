@@ -9,6 +9,15 @@ function makeGitHubFileResponse(data, sha = 'abc123') {
   return { ok: true, json: () => Promise.resolve({ content, sha }) }
 }
 
+function setupGitHubFileFetches({ periodes = [], portefeuilles = [], keywords = [], leeruitkomsten = [], shas = {} } = {}) {
+  const sha = { p: 'sha-p', pf: 'sha-pf', kw: 'sha-kw', lu: 'sha-lu', ...shas }
+  mockFetch
+    .mockResolvedValueOnce(makeGitHubFileResponse(periodes,      sha.p))
+    .mockResolvedValueOnce(makeGitHubFileResponse(portefeuilles, sha.pf))
+    .mockResolvedValueOnce(makeGitHubFileResponse(keywords,      sha.kw))
+    .mockResolvedValueOnce(makeGitHubFileResponse(leeruitkomsten, sha.lu))
+}
+
 
 const mockFetch = vi.fn()
 
@@ -269,11 +278,7 @@ describe('loadAll', () => {
 
     // GitHub geeft een andere versie terug
     const githubKeywords = [{ id: 'kw-github', naam: 'GitHub versie' }]
-    mockFetch
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-p'))
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-pf'))
-      .mockResolvedValueOnce(makeGitHubFileResponse(githubKeywords, 'sha-kw'))
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-lu'))
+    setupGitHubFileFetches({ keywords: githubKeywords })
 
     const store = useBlauwdrukStore()
     await store.loadAll()
@@ -306,16 +311,12 @@ describe('loadAll', () => {
     localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
     localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
 
-    const periodes      = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
-    const portefeuilles = [{ id: 'db', label: 'Databases' }]
-    const keywords      = [{ id: 'kw-1', naam: 'SQL' }]
+    const periodes       = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
+    const portefeuilles  = [{ id: 'db', label: 'Databases' }]
+    const keywords       = [{ id: 'kw-1', naam: 'SQL' }]
     const leeruitkomsten = [{ id: 'lu-1', naam: 'Full Stack' }]
 
-    mockFetch
-      .mockResolvedValueOnce(makeGitHubFileResponse(periodes,       'sha-p'))
-      .mockResolvedValueOnce(makeGitHubFileResponse(portefeuilles,  'sha-pf'))
-      .mockResolvedValueOnce(makeGitHubFileResponse(keywords,       'sha-kw'))
-      .mockResolvedValueOnce(makeGitHubFileResponse(leeruitkomsten, 'sha-lu'))
+    setupGitHubFileFetches({ periodes, portefeuilles, keywords, leeruitkomsten })
 
     const store = useBlauwdrukStore()
     await store.loadAll()
@@ -331,11 +332,7 @@ describe('loadAll', () => {
     localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
     localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
 
-    mockFetch
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-p'))
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-pf'))
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-kw'))
-      .mockResolvedValueOnce(makeGitHubFileResponse([], 'sha-lu'))
+    setupGitHubFileFetches()
 
     const store = useBlauwdrukStore()
     await store.loadAll()

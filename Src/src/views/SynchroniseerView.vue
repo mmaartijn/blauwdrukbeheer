@@ -29,7 +29,67 @@
     <!-- Geconfigureerd -->
     <template v-else>
 
-      <!-- Status-kaart -->
+      <!-- Wijzigingen publiceren -->
+      <div v-if="store.dirtyFiles.size > 0" class="rounded-xl border border-blue-200 bg-blue-50 p-6 space-y-4">
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-blue-800">Wijzigingen publiceren</p>
+          <p class="text-sm text-blue-700">
+            Je lokale wijzigingen worden via een pull request gepubliceerd naar de data-repository.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Branch-naam</label>
+            <input
+              v-model="branchName"
+              type="text"
+              placeholder="bijv. update/keywords-2026-04"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono bg-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">PR-titel</label>
+            <input
+              v-model="prTitle"
+              type="text"
+              placeholder="Wijzigingen blauwdruk …"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Omschrijving <span class="text-gray-400 font-normal">(optioneel)</span></label>
+            <textarea
+              v-model="prBody"
+              rows="3"
+              placeholder="Wat is er gewijzigd en waarom?"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white"
+            />
+          </div>
+        </div>
+
+        <!-- Foutmelding -->
+        <p v-if="publishError" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {{ publishError }}
+        </p>
+
+        <!-- Succes: PR-link -->
+        <div v-if="prUrl" class="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 space-y-1">
+          <p class="font-medium">Pull request aangemaakt!</p>
+          <a :href="prUrl" target="_blank" rel="noopener" class="text-blue-600 underline break-all">{{ prUrl }}</a>
+        </div>
+
+        <button
+          v-if="!prUrl"
+          @click="publish"
+          :disabled="publishing || !branchName || !prTitle"
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+        >
+          {{ publishing ? 'Bezig met publiceren…' : 'Publiceren' }}
+        </button>
+      </div>
+
+      <!-- Status-kaart (GitHub sync) -->
       <div
         class="rounded-xl border p-6 space-y-4"
         :class="statusCardClass"
@@ -119,7 +179,6 @@
               >
                 Lokale wijzigingen weggooien
               </button>
-              <span class="text-xs text-gray-400">({{ store.dirtyFiles.size }} bestand{{ store.dirtyFiles.size === 1 ? '' : 'en' }} gewijzigd)</span>
             </div>
             <div v-else class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               <span class="text-xs text-red-700 font-medium">Zeker weten? Lokale wijzigingen gaan permanent verloren.</span>
@@ -172,6 +231,15 @@ const discarding     = ref(false)
 const confirmDiscard = ref(false)
 const syncError      = ref(null)
 
+// Publiceren
+const today      = new Date().toISOString().slice(0, 10)
+const branchName = ref(`update/blauwdruk-${today}`)
+const prTitle    = ref(`Blauwdruk update ${today}`)
+const prBody     = ref('')
+const publishing = ref(false)
+const publishError = ref(null)
+const prUrl      = ref(null)
+
 const statusCardClass = computed(() => {
   if (checking.value)                         return 'border-gray-200 bg-white'
   if (neverSynced.value)                      return 'border-gray-200 bg-gray-50'
@@ -209,6 +277,18 @@ async function doDiscard() {
     syncError.value = e.message
   } finally {
     discarding.value = false
+  }
+}
+
+async function publish() {
+  publishing.value = true
+  publishError.value = null
+  try {
+    prUrl.value = await store.publishChanges(branchName.value, prTitle.value, prBody.value)
+  } catch (e) {
+    publishError.value = e.message
+  } finally {
+    publishing.value = false
   }
 }
 

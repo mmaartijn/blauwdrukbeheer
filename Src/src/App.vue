@@ -14,25 +14,19 @@
         </RouterLink>
 
         <div class="ml-auto flex items-center gap-3">
-          <!-- Dirty-badge + publiceer-knop -->
-          <button
-            v-if="store.dirtyFiles.size > 0"
-            @click="publicerenOpen = true"
-            class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
-          >
-            <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
-            {{ store.dirtyFiles.size }} wijziging{{ store.dirtyFiles.size === 1 ? '' : 'en' }}
-          </button>
-
-          <!-- Synchroniseer-link met badge als er updates zijn -->
+          <!-- Synchroniseer-link: alert-stijl bij dirty wijzigingen of GitHub-updates -->
           <RouterLink
             to="/synchroniseer"
-            class="relative text-sm font-medium hover:text-blue-200 transition-colors"
-            active-class="text-white border-b-2 border-blue-300 pb-0.5"
+            class="relative text-sm font-medium transition-colors"
+            :class="store.dirtyFiles.size > 0
+              ? 'bg-amber-500 hover:bg-amber-400 text-white px-3 py-1.5 rounded-full font-semibold'
+              : 'hover:text-blue-200'"
+            active-class="border-b-2 border-blue-300 pb-0.5"
           >
-            Synchroniseer
+            <span v-if="store.dirtyFiles.size > 0" class="inline-block w-2 h-2 rounded-full bg-white animate-pulse mr-1.5 align-middle"></span>
+            {{ store.dirtyFiles.size > 0 ? 'Synchroniseer wijzigingen' : 'Synchroniseer' }}
             <span
-              v-if="store.hasUpdates"
+              v-if="store.hasUpdates && store.dirtyFiles.size === 0"
               class="absolute -top-1.5 -right-2.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"
             ></span>
           </RouterLink>
@@ -77,19 +71,15 @@
       </div>
     </main>
 
-    <!-- Publiceren-modal (9d) -->
-    <PublicerenModal v-if="publicerenOpen" @close="publicerenOpen = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
-import PublicerenModal from '@/components/PublicerenModal.vue'
 
 const store = useBlauwdrukStore()
-const publicerenOpen = ref(false)
 
 const navLinks = [
   { to: '/matrix', label: 'Matrix' },
