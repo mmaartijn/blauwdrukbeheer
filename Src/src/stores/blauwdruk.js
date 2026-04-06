@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { CACHE_KEYS, DATA_FILES, SETTINGS_KEYS } from '@/constants/api'
 import { useGitHubData } from '@/composables/useGitHubData'
+import { generateAllModulePdfs } from '@/composables/usePdfExport'
 
 export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const periodes = ref([])
@@ -223,7 +224,12 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
 
   // ── Publiceren naar GitHub via PR ─────────────────────────────────────────
 
-  async function publishChanges(branchName, prTitle, prBody) {
+  /**
+   * Publiceert dirty wijzigingen naar een nieuwe feature branch en opent een PR.
+   * Genereert ook client-side PDFs voor alle modules en commit die mee.
+   * onPdfProgress(current, total, naam) wordt aangeroepen per gegenereerde PDF.
+   */
+  async function publishChanges(branchName, prTitle, prBody, onPdfProgress = null) {
     const gh = useGitHubData()
 
     if (!localStorage.getItem(SETTINGS_KEYS.GH_TOKEN)) {
@@ -237,8 +243,10 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
       throw new Error('Er zijn geen wijzigingen om te publiceren.')
     }
 
+    // 1. Branch aanmaken op basis van HEAD van main
     await gh.createBranch(branchName)
 
+    // 2. Dirty JSON-bestanden committen
     const fileDataMap = {
       [DATA_FILES.KEYWORDS]:      keywords.value,
       [DATA_FILES.MODULES]:       modules.value,
@@ -253,6 +261,22 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
       await gh.commitJsonFile(fileName, data, sha, branchName, `chore: update ${fileName}`)
     }
 
+    // 3. PDFs genereren en committen voor alle modules
+    //    (keywords kunnen ook gewijzigd zijn en die komen in de PDF, dus altijd alles regenereren)
+    const pdfFiles = await generateAllModulePdfs(
+      modules.value,
+      keywords.value,
+      portefeuilles.value,
+      periodes.value,
+      onPdfProgress
+    )
+
+    for (const { filename, base64 } of pdfFiles) {
+      const existingSha = await gh.fetchFileSha(filename, branchName)
+      await gh.commitFile(filename, base64, existingSha, branchName, `chore: update ${filename}`)
+    }
+
+    // 4. PR aanmaken
     const pr = await gh.createPR(prTitle, prBody || '', branchName)
     dirtyFiles.value = new Set()
     localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
