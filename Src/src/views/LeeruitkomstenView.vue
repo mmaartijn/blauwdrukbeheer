@@ -102,12 +102,10 @@ function newLeeruitkomst() {
   activeLu.value = {
     id: store.generateId('lu'),
     periode: store.periodes[0]?.id ?? '',
-    module: '',
     naam: '',
     ec: null,
     omschrijving: '',
     eindkwalificaties: [],
-    deelberoepsprestaties: [],
     deelstappen: [],
     kennis_vaardigheden: [],
     modellen_theorieen: [],
@@ -118,8 +116,14 @@ function newLeeruitkomst() {
 
 function saveLu(lu) {
   const exists = store.leeruitkomsten.find(l => l.id === lu.id)
-  if (exists) store.updateLeeruitkomst(lu)
-  else store.addLeeruitkomst(lu)
+  if (exists) {
+    store.updateLeeruitkomst(lu)
+  } else {
+    // Voor een nieuwe LU moeten we weten in welke module hij moet komen.
+    // In deze view gebruiken we de periode om de juiste module te vinden.
+    const mod = store.modules.find(m => m.periode === lu.periode)
+    store.addLeeruitkomst(lu, mod?.naam || '')
+  }
   modalOpen.value = false
 }
 

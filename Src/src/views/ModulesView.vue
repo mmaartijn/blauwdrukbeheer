@@ -44,35 +44,26 @@ import { useBlauwdrukStore } from '@/stores/blauwdruk'
 
 const store = useBlauwdrukStore()
 
-function moduleEc(lus) {
+// Gebruik modules direct vanuit de store, verrijkt met labels en jaar-info
+const modules = computed(() => {
+  return store.modules.map(mod => {
+    const periode = store.periodes.find(p => p.id === mod.periode)
+    return {
+      ...mod,
+      periodeId: mod.periode,
+      periodeLabel: periode?.label ?? mod.periode,
+      jaar: periode?.jaar ?? 0,
+      ec: moduleEc(mod.leeruitkomsten, mod.naam)
+    }
+  }).sort((a, b) => a.jaar - b.jaar || a.periodeId.localeCompare(b.periodeId))
+})
+
+function moduleEc(lus, moduleName) {
   const som = lus.reduce((acc, lu) => acc + (lu.ec ?? 0), 0)
   if (som > 0) return som
-  const match = lus[0]?.module?.match(/\((\d+)\s*EC\)/i)
+  const match = moduleName?.match(/\((\d+)\s*EC\)/i)
   return match ? parseInt(match[1]) : null
 }
-
-// Groepeer leeruitkomsten per periode → module
-const modules = computed(() => {
-  const map = new Map()
-  for (const lu of store.leeruitkomsten) {
-    if (!map.has(lu.periode)) {
-      map.set(lu.periode, { periodeId: lu.periode, naam: lu.module, ec: null, leeruitkomsten: [] })
-    }
-    map.get(lu.periode).leeruitkomsten.push(lu)
-  }
-  for (const mod of map.values()) {
-    mod.ec = moduleEc(mod.leeruitkomsten)
-  }
-
-  // Verrijken met periodeLabel
-  for (const [periodeId, mod] of map) {
-    const periode = store.periodes.find(p => p.id === periodeId)
-    mod.periodeLabel = periode?.label ?? periodeId
-    mod.jaar = periode?.jaar ?? 0
-  }
-
-  return [...map.values()].sort((a, b) => a.jaar - b.jaar || a.periodeId.localeCompare(b.periodeId))
-})
 
 const jaren = computed(() => [...new Set(modules.value.map(m => m.jaar))].sort())
 

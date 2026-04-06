@@ -7,7 +7,15 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const periodes = ref([])
   const portefeuilles = ref([])
   const keywords = ref([])
-  const leeruitkomsten = ref([])
+  const modules = ref([])
+
+  const leeruitkomsten = computed(() => {
+    return modules.value.flatMap(m => m.leeruitkomsten.map(lu => ({
+      ...lu,
+      module: m.naam,
+      periode: m.periode
+    })))
+  })
 
   // ── Laadstatus ────────────────────────────────────────────────────────────
   const isLoading = ref(false)
@@ -52,11 +60,11 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   async function loadFromGitHub({ discardDirty = false } = {}) {
     const gh = useGitHubData()
     try {
-      const [p, pf, kw, lu] = await Promise.all([
+      const [p, pf, kw, m] = await Promise.all([
         gh.fetchJsonFile(DATA_FILES.PERIODES),
         gh.fetchJsonFile(DATA_FILES.PORTEFEUILLES),
         gh.fetchJsonFile(DATA_FILES.KEYWORDS),
-        gh.fetchJsonFile(DATA_FILES.LEERUITKOMSTEN),
+        gh.fetchJsonFile(DATA_FILES.MODULES),
       ])
 
       // SHA's altijd bijwerken op basis van GitHub (nodig bij latere commits)
@@ -64,7 +72,7 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
         [DATA_FILES.PERIODES]: p.sha,
         [DATA_FILES.PORTEFEUILLES]: pf.sha,
         [DATA_FILES.KEYWORDS]: kw.sha,
-        [DATA_FILES.LEERUITKOMSTEN]: lu.sha,
+        [DATA_FILES.MODULES]: m.sha,
       }
       localStorage.setItem(CACHE_KEYS.SHAS, JSON.stringify(fileShas.value))
 
@@ -87,7 +95,7 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
       restore(DATA_FILES.PERIODES,      p.data,  CACHE_KEYS.PERIODES,      periodes)
       restore(DATA_FILES.PORTEFEUILLES, pf.data, CACHE_KEYS.PORTEFEUILLES, portefeuilles)
       restore(DATA_FILES.KEYWORDS,      kw.data, CACHE_KEYS.KEYWORDS,      keywords)
-      restore(DATA_FILES.LEERUITKOMSTEN, lu.data, CACHE_KEYS.LEERUITKOMSTEN, leeruitkomsten)
+      restore(DATA_FILES.MODULES,       m.data,  CACHE_KEYS.MODULES,       modules)
 
       dirtyFiles.value = persisted
       if (discardDirty) localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
@@ -129,12 +137,12 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     const p  = localStorage.getItem(CACHE_KEYS.PERIODES)
     const pf = localStorage.getItem(CACHE_KEYS.PORTEFEUILLES)
     const kw = localStorage.getItem(CACHE_KEYS.KEYWORDS)
-    const lu = localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN)
-    if (p && pf && kw && lu) {
+    const m  = localStorage.getItem(CACHE_KEYS.MODULES)
+    if (p && pf && kw && m) {
       periodes.value       = repairMojibake(JSON.parse(p))
       portefeuilles.value  = repairMojibake(JSON.parse(pf))
       keywords.value       = repairMojibake(JSON.parse(kw))
-      leeruitkomsten.value = repairMojibake(JSON.parse(lu))
+      modules.value        = repairMojibake(JSON.parse(m))
       // Dirty state herstellen zodat de badge en publiceer-knop correct zijn na refresh
       const persisted = JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]')
       dirtyFiles.value = new Set(persisted)
@@ -208,9 +216,9 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     persistDirty(DATA_FILES.KEYWORDS)
   }
 
-  function saveLeeruitkomsten() {
-    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify(leeruitkomsten.value))
-    persistDirty(DATA_FILES.LEERUITKOMSTEN)
+  function saveModules() {
+    localStorage.setItem(CACHE_KEYS.MODULES, JSON.stringify(modules.value))
+    persistDirty(DATA_FILES.MODULES)
   }
 
   // ── Publiceren naar GitHub via PR ─────────────────────────────────────────
@@ -233,7 +241,9 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
 
     const fileDataMap = {
       [DATA_FILES.KEYWORDS]:      keywords.value,
-      [DATA_FILES.LEERUITKOMSTEN]: leeruitkomsten.value,
+      [DATA_FILES.MODULES]:       modules.value,
+      [DATA_FILES.PERIODES]:      periodes.value,
+      [DATA_FILES.PORTEFEUILLES]: portefeuilles.value,
     }
 
     for (const fileName of dirtyFiles.value) {
@@ -266,21 +276,69 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     saveKeywords()
   }
 
-  // ── Leeruitkomsten ────────────────────────────────────────────────────────
-  function addLeeruitkomst(lu) {
-    leeruitkomsten.value.push(lu)
-    saveLeeruitkomsten()
+  // ── Leeruitkomsten (via Modules) ─────────────────────────────────────────
+  
+  function findModuleByLuId(id) {
+    return modules.value.find(m => m.leeruitkomsten.some(l => l.id === id))
+  }
+
+  function addLeeruitkomst(lu, moduleNameOrId) {
+    // Zoek module op naam of id
+    let mod = modules.value.find(m => m.id === moduleNameOrId || m.naam === moduleNameOrId)
+    if (!mod && lu.periode) {
+      // Fallback: zoek op periode
+       mod = modules.value.find(m => m.periode === lu.periode)
+    }
+    
+    if (mod) {
+      const { module, periode, ...luPure } = lu
+      mod.leeruitkomsten.push(luPure)
+      saveModules()
+    } else {
+      console.warn('Kan module niet vinden voor nieuwe leeruitkomst:', moduleNameOrId)
+    }
   }
 
   function updateLeeruitkomst(updated) {
-    const idx = leeruitkomsten.value.findIndex(l => l.id === updated.id)
-    if (idx !== -1) leeruitkomsten.value[idx] = updated
-    saveLeeruitkomsten()
+    // Omdat we geen 'module' property meer hebben op de LU zelf in modules.json,
+    // moeten we de module vinden die deze LU bevat.
+    const mod = modules.value.find(m => m.leeruitkomsten.some(l => l.id === updated.id))
+    if (mod) {
+      const idx = mod.leeruitkomsten.findIndex(l => l.id === updated.id)
+      const { module, periode, ...luPure } = updated
+      mod.leeruitkomsten[idx] = luPure
+      saveModules()
+    }
   }
 
   function deleteLeeruitkomst(id) {
-    leeruitkomsten.value = leeruitkomsten.value.filter(l => l.id !== id)
-    saveLeeruitkomsten()
+    const mod = modules.value.find(m => m.leeruitkomsten.some(l => l.id === id))
+    if (mod) {
+      mod.leeruitkomsten = mod.leeruitkomsten.filter(l => l.id !== id)
+      saveModules()
+    }
+  }
+
+  // ── Modules ──────────────────────────────────────────────────────────────
+  function addModule(mod) {
+    modules.value.push({
+      id: mod.id || generateId('mod'),
+      naam: mod.naam,
+      periode: mod.periode,
+      leeruitkomsten: mod.leeruitkomsten || []
+    })
+    saveModules()
+  }
+
+  function updateModule(updated) {
+    const idx = modules.value.findIndex(m => m.id === updated.id)
+    if (idx !== -1) modules.value[idx] = updated
+    saveModules()
+  }
+
+  function deleteModule(id) {
+    modules.value = modules.value.filter(m => m.id !== id)
+    saveModules()
   }
 
   // ── Hulpfuncties ──────────────────────────────────────────────────────────
@@ -289,12 +347,13 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   }
 
   return {
-    periodes, portefeuilles, keywords, leeruitkomsten,
+    periodes, portefeuilles, keywords, modules, leeruitkomsten,
     isLoading, hasError,
     dirtyFiles, hasUpdates, updateStatus,
     loadAll, refreshFromGitHub, discardChanges, checkForUpdates,
     addKeyword, updateKeyword, deleteKeyword,
     addLeeruitkomst, updateLeeruitkomst, deleteLeeruitkomst,
+    addModule, updateModule, deleteModule,
     generateId,
     publishChanges,
   }

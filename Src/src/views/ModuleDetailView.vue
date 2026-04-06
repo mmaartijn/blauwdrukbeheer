@@ -435,13 +435,12 @@ const store = useBlauwdrukStore()
 const periodeId = computed(() => decodeURIComponent(route.params.periodeId))
 
 const module = computed(() => {
-  const lus = store.leeruitkomsten.filter(lu => lu.periode === periodeId.value)
-  if (!lus.length) return null
+  const mod = store.modules.find(m => m.periode === periodeId.value)
+  if (!mod) return null
   const periode = store.periodes.find(p => p.id === periodeId.value)
-  const naam = lus[0].module
-  const som = lus.reduce((acc, lu) => acc + (lu.ec ?? 0), 0)
-  const ec = som > 0 ? som : (naam.match(/\((\d+)\s*EC\)/i)?.[1] ? parseInt(naam.match(/\((\d+)\s*EC\)/i)[1]) : null)
-  return { naam, ec, periodeLabel: periode?.label ?? periodeId.value, leeruitkomsten: lus }
+  const som = mod.leeruitkomsten.reduce((acc, lu) => acc + (lu.ec ?? 0), 0)
+  const ec = som > 0 ? som : (mod.naam.match(/\((\d+)\s*EC\)/i)?.[1] ? parseInt(mod.naam.match(/\((\d+)\s*EC\)/i)[1]) : null)
+  return { ...mod, ec, periodeLabel: periode?.label ?? periodeId.value }
 })
 
 const keywordsPerPortefeuille = computed(() => {
@@ -538,8 +537,8 @@ function startEditModuleNaam() {
 
 function saveModuleNaam() {
   const newNaam = editModuleNaamValue.value.trim()
-  if (!newNaam) return
-  module.value.leeruitkomsten.forEach(lu => store.updateLeeruitkomst({ ...lu, module: newNaam }))
+  if (!newNaam || !module.value) return
+  store.updateModule({ ...module.value, naam: newNaam })
   editingModuleNaam.value = false
 }
 
@@ -575,13 +574,18 @@ function saveEditLu() {
   arrayFields.forEach(f => { updated[f.key] = (updated[f.key] ?? []).filter(v => v.trim() !== '') })
   if (updated.toetsmatrijs) {
     updated.toetsmatrijs.forEach(s => {
-      s.items.forEach(i => { i.criteria = (i.criteria ?? []).filter(c => c.trim() !== '') })
+      if (s.items) {
+        s.items.forEach(i => { i.criteria = (i.criteria ?? []).filter(c => c.trim() !== '') })
+      }
     })
   }
-  if (store.leeruitkomsten.some(l => l.id === updated.id)) {
+
+  // Zoek in welke module dit ding hoort (via de store)
+  const existingLu = store.leeruitkomsten.find(l => l.id === updated.id)
+  if (existingLu) {
     store.updateLeeruitkomst(updated)
   } else {
-    store.addLeeruitkomst(updated)
+    store.addLeeruitkomst(updated, module.value.naam)
   }
   cancelEditLu()
 }
@@ -591,20 +595,17 @@ function deleteLu(id) { store.deleteLeeruitkomst(id); cancelEditLu() }
 function addNewLu() {
   const newLu = {
     id: store.generateId('lu'),
-    periode: periodeId.value,
-    module: module.value.naam,
     naam: '',
     ec: null,
     omschrijving: '',
     eindkwalificaties: [],
-    deelberoepsprestaties: [],
     deelstappen: [],
     kennis_vaardigheden: [],
     modellen_theorieen: [],
     beroepscontext: '',
     toetsmatrijs: [],
   }
-  store.addLeeruitkomst(newLu)
+  // We triggeren direct de edit mode met de nieuwe LU
   startEditLu(newLu)
 }
 
