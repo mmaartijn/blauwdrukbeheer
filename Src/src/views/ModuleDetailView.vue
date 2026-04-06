@@ -133,19 +133,19 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template v-for="sectie in lu.toetsmatrijs" :key="sectie.onderdeel">
+                  <template v-for="toetsonderdeel in lu.toetsmatrijs" :key="toetsonderdeel.onderdeel">
                     <tr class="bg-blue-50">
-                      <td colspan="2" class="px-3 py-1.5 font-semibold text-blue-800 text-xs uppercase tracking-wide border border-gray-200">{{ sectie.onderdeel }}</td>
+                      <td colspan="2" class="px-3 py-1.5 font-semibold text-blue-800 text-xs uppercase tracking-wide border border-gray-200">{{ toetsonderdeel.onderdeel }}</td>
                     </tr>
-                    <template v-for="item in sectie.items" :key="item.omschrijving">
+                    <template v-for="categorie in toetsonderdeel.categorieen" :key="categorie.omschrijving">
                       <tr>
-                        <td class="px-3 py-2 border border-gray-200 align-top text-gray-800">{{ item.omschrijving }}</td>
-                        <td class="px-3 py-2 border border-gray-200 text-right font-medium text-gray-900 align-top">{{ item.punten }}</td>
+                        <td class="px-3 py-2 border border-gray-200 align-top text-gray-800">{{ categorie.omschrijving }}</td>
+                        <td class="px-3 py-2 border border-gray-200 text-right font-medium text-gray-900 align-top">{{ categorie.punten }}</td>
                       </tr>
-                      <tr v-if="item.criteria?.length" class="bg-gray-50">
+                      <tr v-if="categorie.criteria?.length" class="bg-gray-50">
                         <td colspan="2" class="px-3 pb-2 pt-1 border border-gray-200">
                           <ul class="space-y-0.5">
-                            <li v-for="criterium in item.criteria" :key="criterium" class="flex items-start gap-1.5 text-gray-600 text-xs">
+                            <li v-for="criterium in categorie.criteria" :key="criterium" class="flex items-start gap-1.5 text-gray-600 text-xs">
                               <span class="text-blue-400 mt-0.5 flex-shrink-0">›</span>{{ criterium }}
                             </li>
                           </ul>
@@ -156,7 +156,7 @@
                   <tr class="bg-gray-100 font-semibold">
                     <td class="px-3 py-2 border border-gray-200 text-gray-700">Totaal</td>
                     <td class="px-3 py-2 border border-gray-200 text-right text-gray-900">
-                      {{ lu.toetsmatrijs.flatMap(s => s.items).reduce((sum, i) => sum + (i.punten ?? 0), 0) }}
+                      {{ lu.toetsmatrijs.flatMap(s => s.categorieen).reduce((sum, i) => sum + (i.punten ?? 0), 0) }}
                     </td>
                   </tr>
                 </tbody>
@@ -214,64 +214,64 @@
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <label class="field-label mb-0">Toetsmatrijs</label>
-                  <button @click="addSectie(editLuData)" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                  <button @click="addToetsonderdeel(editLuData)" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
                     </svg>
-                    Sectie toevoegen
+                    Toetsonderdeel toevoegen
                   </button>
                 </div>
                 <div class="space-y-3">
-                  <div v-for="(sectie, sIdx) in (editLuData.toetsmatrijs ?? [])" :key="sIdx"
+                  <div v-for="(toetsonderdeel, sIdx) in (editLuData.toetsmatrijs ?? [])" :key="sIdx"
                     class="border border-gray-200 rounded-lg bg-white overflow-hidden">
                     <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
-                      <input v-model="sectie.onderdeel" class="field-input text-sm font-semibold flex-1 bg-white" placeholder="Sectienaam" />
+                      <input v-model="toetsonderdeel.onderdeel" class="field-input text-sm font-semibold flex-1 bg-white" placeholder="Toetsonderdeel" />
                       <button @click="editLuData.toetsmatrijs.splice(sIdx, 1)"
                         class="text-xs text-gray-400 hover:text-red-500 whitespace-nowrap px-2 py-1 hover:bg-red-50 rounded transition-colors">
                         Verwijderen
                       </button>
                     </div>
                     <div class="p-3 space-y-3">
-                      <div v-for="(item, iIdx) in sectie.items" :key="iIdx"
+                      <div v-for="(categorie, iIdx) in toetsonderdeel.categorieen" :key="iIdx"
                         class="rounded-lg bg-gray-50 border border-gray-100 p-3 space-y-2">
                         <div class="flex gap-2 items-start">
-                          <textarea v-model="item.omschrijving" rows="2" class="field-input text-sm flex-1 resize-none" placeholder="Omschrijving" />
+                          <textarea v-model="categorie.omschrijving" rows="2" class="field-input text-sm flex-1 resize-none" placeholder="Omschrijving" />
                           <div class="flex-shrink-0 text-center w-16">
-                            <input v-model.number="item.punten" type="number" min="0" class="field-input text-center text-sm w-full" placeholder="0" />
+                            <input v-model.number="categorie.punten" type="number" min="0" class="field-input text-center text-sm w-full" placeholder="0" />
                             <span class="text-[10px] text-gray-400">punten</span>
                           </div>
                         </div>
                         <div class="space-y-1 pl-3 border-l-2 border-blue-100">
-                          <div v-for="(_, cIdx) in item.criteria" :key="cIdx" class="flex gap-1.5">
-                            <input v-model="item.criteria[cIdx]" class="field-input text-xs flex-1" placeholder="Criterium" />
-                            <button @click="item.criteria.splice(cIdx, 1)"
+                          <div v-for="(_, cIdx) in categorie.criteria" :key="cIdx" class="flex gap-1.5">
+                            <input v-model="categorie.criteria[cIdx]" class="field-input text-xs flex-1" placeholder="Criterium" />
+                            <button @click="categorie.criteria.splice(cIdx, 1)"
                               class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                               </svg>
                             </button>
                           </div>
-                          <button @click="item.criteria.push('')" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 pt-0.5">
+                          <button @click="categorie.criteria.push('')" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 pt-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                               <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
                             </svg>
                             Criterium
                           </button>
                         </div>
-                        <button @click="sectie.items.splice(iIdx, 1)" class="text-xs text-gray-400 hover:text-red-500 transition-colors">
-                          Item verwijderen
+                        <button @click="toetsonderdeel.categorieen.splice(iIdx, 1)" class="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                          Categorie verwijderen
                         </button>
                       </div>
-                      <button @click="addToetsItem(sectie)" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                      <button @click="addCategorie(toetsonderdeel)" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
                         </svg>
-                        Item toevoegen
+                        Categorie toevoegen
                       </button>
                     </div>
                   </div>
                   <p v-if="!editLuData.toetsmatrijs?.length" class="text-xs text-gray-400 italic">
-                    Geen toetsmatrijs — voeg een sectie toe om te beginnen.
+                    Geen toetsmatrijs — voeg een toetsonderdeel toe om te beginnen.
                   </p>
                 </div>
               </div>
@@ -609,12 +609,12 @@ function addNewLu() {
   startEditLu(newLu)
 }
 
-function addSectie(lu) {
+function addToetsonderdeel(lu) {
   if (!lu.toetsmatrijs) lu.toetsmatrijs = []
-  lu.toetsmatrijs.push({ onderdeel: '', items: [] })
+  lu.toetsmatrijs.push({ onderdeel: '', categorieen: [] })
 }
 
-function addToetsItem(sectie) { sectie.items.push({ omschrijving: '', punten: 0, criteria: [] }) }
+function addCategorie(toetsonderdeel) { toetsonderdeel.categorieen.push({ omschrijving: '', punten: 0, criteria: [] }) }
 
 // bloomLabel en bloomBadgeClass komen uit @/composables/useBloom
 const bloomColor = bloomBadgeClass

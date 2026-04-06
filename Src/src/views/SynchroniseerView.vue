@@ -40,20 +40,11 @@
 
         <div class="space-y-3">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Branch-naam</label>
-            <input
-              v-model="branchName"
-              type="text"
-              placeholder="bijv. update/keywords-2026-04"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono bg-white"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">PR-titel</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Naam wijziging</label>
             <input
               v-model="prTitle"
               type="text"
-              placeholder="Wijzigingen blauwdruk …"
+              placeholder="Bijv. Keywords periode 2 bijgewerkt"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
           </div>
@@ -82,7 +73,7 @@
         <button
           v-if="!prUrl"
           @click="publish"
-          :disabled="publishing || !branchName || !prTitle"
+          :disabled="publishing || !prTitle.trim()"
           class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
           {{ publishing ? 'Bezig met publiceren…' : 'Publiceren' }}
@@ -232,13 +223,25 @@ const confirmDiscard = ref(false)
 const syncError      = ref(null)
 
 // Publiceren
-const today      = new Date().toISOString().slice(0, 10)
-const branchName = ref(`update/blauwdruk-${today}`)
-const prTitle    = ref(`Blauwdruk update ${today}`)
-const prBody     = ref('')
-const publishing = ref(false)
+const today    = new Date().toISOString().slice(0, 10)
+const prTitle  = ref(`Blauwdruk update ${today}`)
+const prBody   = ref('')
+const publishing   = ref(false)
 const publishError = ref(null)
-const prUrl      = ref(null)
+const prUrl    = ref(null)
+
+// Branchnaam automatisch afgeleid van de PR-titel
+const branchName = computed(() => {
+  const slug = prTitle.value
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // verwijder diakritische tekens
+    .replace(/[^a-z0-9\s-]/g, '')                     // alleen letters, cijfers, spaties en koppeltekens
+    .trim()
+    .replace(/\s+/g, '-')                              // spaties → koppelteken
+    .replace(/-+/g, '-')                               // meerdere koppeltekens samenvoegen
+    .slice(0, 50)                                      // max branch-lengte
+  return `update/${slug}`
+})
 
 const statusCardClass = computed(() => {
   if (checking.value)                         return 'border-gray-200 bg-white'
