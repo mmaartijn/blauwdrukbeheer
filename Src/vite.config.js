@@ -5,54 +5,35 @@ import { fileURLToPath, URL } from 'node:url'
 import fs from 'node:fs'
 import path from 'node:path'
 
-// Custom plugin to serve the /Data folder at /data
-function serveDataPlugin() {
+// Kopieert /Data/*.json naar dist/data/ bij npm run build.
+// Dient als statische fallback als de gebruiker nog geen data-repo geconfigureerd heeft.
+function copyDataPlugin() {
   return {
-    name: 'serve-data-dir',
-    configureServer(server) {
-      server.middlewares.use('/data', (req, res, next) => {
-        // Construct path to ../Data
-        const __dirname = path.dirname(fileURLToPath(import.meta.url))
-        const filePath = path.join(__dirname, '..', 'Data', req.url.split('?')[0])
-        
-        if (req.method === 'POST') {
-          let body = ''
-          req.on('data', chunk => {
-            body += chunk.toString()
-          })
-          req.on('end', () => {
-             if (filePath.endsWith('.json')) {
-               fs.writeFileSync(filePath, body)
-               res.setHeader('Content-Type', 'application/json')
-               res.end(JSON.stringify({success: true}))
-             } else {
-               res.statusCode = 400
-               res.end('Bad Request')
-             }
-          })
-          return
+    name: 'copy-data-to-dist',
+    writeBundle(options) {
+      const __dirname = path.dirname(fileURLToPath(import.meta.url))
+      const src = path.join(__dirname, '..', 'Data')
+      const dest = path.join(options.dir, 'data')
+      fs.mkdirSync(dest, { recursive: true })
+      for (const file of fs.readdirSync(src)) {
+        if (file.endsWith('.json')) {
+          fs.copyFileSync(path.join(src, file), path.join(dest, file))
         }
-
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-          res.setHeader('Content-Type', 'application/json')
-          res.end(fs.readFileSync(filePath))
-        } else {
-          next()
-        }
-      })
-    }
+      }
+    },
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/blauwdrukbeheer/' : '/',
   plugins: [
     vue(),
     tailwindcss(),
-    serveDataPlugin()
+    copyDataPlugin(),
   ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-})
+}))

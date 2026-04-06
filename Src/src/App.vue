@@ -12,6 +12,34 @@
         >
           {{ link.label }}
         </RouterLink>
+
+        <div class="ml-auto flex items-center gap-3">
+          <!-- Synchroniseer-link: alert-stijl bij dirty wijzigingen of GitHub-updates -->
+          <RouterLink
+            to="/synchroniseer"
+            class="relative text-sm font-medium transition-colors"
+            :class="store.dirtyFiles.size > 0
+              ? 'bg-amber-500 hover:bg-amber-400 text-white px-3 py-1.5 rounded-full font-semibold'
+              : 'hover:text-blue-200'"
+            active-class="border-b-2 border-blue-300 pb-0.5"
+          >
+            <span v-if="store.dirtyFiles.size > 0" class="inline-block w-2 h-2 rounded-full bg-white animate-pulse mr-1.5 align-middle"></span>
+            {{ store.dirtyFiles.size > 0 ? 'Synchroniseer wijzigingen' : 'Synchroniseer' }}
+            <span
+              v-if="store.hasUpdates && store.dirtyFiles.size === 0"
+              class="absolute -top-1.5 -right-2.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"
+            ></span>
+          </RouterLink>
+
+          <!-- Instellingen-link -->
+          <RouterLink
+            to="/instellingen"
+            class="text-sm font-medium hover:text-blue-200 transition-colors"
+            active-class="text-white border-b-2 border-blue-300 pb-0.5"
+          >
+            Instellingen
+          </RouterLink>
+        </div>
       </div>
     </nav>
 
@@ -28,7 +56,9 @@
     <div v-else-if="store.hasError" class="flex-1 flex items-start justify-center pt-16 px-4">
       <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
         <p class="text-red-700 font-semibold mb-1">Laden mislukt</p>
-        <p class="text-red-500 text-sm mb-4">Controleer of de dev-server actief is en de <code>/Data</code>-map beschikbaar is.</p>
+        <p class="text-red-500 text-sm mb-4">
+          Controleer je internetverbinding of configureer een data-repository via <RouterLink to="/instellingen" class="underline">Instellingen</RouterLink>.
+        </p>
         <button @click="store.loadAll()" class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 font-medium">
           Opnieuw proberen
         </button>
@@ -41,24 +71,11 @@
       </div>
     </main>
 
-    <!-- Save-fout toast -->
-    <Transition name="toast">
-      <div
-        v-if="store.saveError"
-        class="fixed bottom-5 right-5 z-50 bg-red-600 text-white text-sm px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 max-w-sm"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-        </svg>
-        <span>{{ store.saveError }}</span>
-        <button @click="store.saveError = null" class="ml-auto text-red-200 hover:text-white flex-shrink-0">✕</button>
-      </div>
-    </Transition>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 
@@ -71,15 +88,9 @@ const navLinks = [
 
 onMounted(async () => {
   await store.loadAll()
+  // Update-check op de achtergrond (stil bij geen internetverbinding/config)
+  store.checkForUpdates()
 })
 
-// Verberg de save-fout-toast automatisch na 5 seconden
-watch(() => store.saveError, (val) => {
-  if (val) setTimeout(() => { store.saveError = null }, 5000)
-})
 </script>
 
-<style>
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(0.5rem); }
-</style>

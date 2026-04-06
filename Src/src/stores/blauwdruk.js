@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { API } from '@/constants/api'
+import { CACHE_KEYS, DATA_FILES, SETTINGS_KEYS } from '@/constants/api'
+import { useGitHubData } from '@/composables/useGitHubData'
 
 export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const periodes = ref([])
@@ -12,53 +13,240 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   const isLoading = ref(false)
   const hasError = ref(false)
 
-  // Foutmelding die views kunnen tonen als een opslaan mislukt
-  const saveError = ref(null)
+  // ── SHA's bijhouden voor GitHub commits ───────────────────────────────────
+  const fileShas = ref({})
+
+  // ── Dirty tracking ────────────────────────────────────────────────────────
+  const dirtyFiles = ref(new Set())
+
+  // ── Update-detectie ───────────────────────────────────────────────────────
+  const hasUpdates = ref(false)
+  const updateStatus = ref({})
 
   // ── Laden ─────────────────────────────────────────────────────────────────
+
   async function loadAll() {
     isLoading.value = true
     hasError.value = false
+
+    const { owner, repo } = useGitHubData().settings()
+    if (owner && repo) {
+      await loadFromGitHub()
+    } else {
+      // Geen repo geconfigureerd: probeer cache
+      if (!loadFromCache()) {
+        hasError.value = true
+      }
+    }
+
+    isLoading.value = false
+  }
+
+  /**
+   * Laadt van GitHub. Dirty bestanden (lokale wijzigingen nog niet gepubliceerd)
+   * worden NIET overschreven — de localStorage-versie blijft leidend voor die bestanden.
+   * SHA's worden altijd bijgehouden op basis van de GitHub-versie (nodig voor commits).
+   *
+   * discardDirty: true → wis dirty state vóór laden (gebruikt door refreshFromGitHub)
+   */
+  async function loadFromGitHub({ discardDirty = false } = {}) {
+    const gh = useGitHubData()
     try {
       const [p, pf, kw, lu] = await Promise.all([
-        fetch(API.PERIODES).then(r => r.json()),
-        fetch(API.PORTEFEUILLES).then(r => r.json()),
-        fetch(API.KEYWORDS).then(r => r.json()),
-        fetch(API.LEERUITKOMSTEN).then(r => r.json()),
+        gh.fetchJsonFile(DATA_FILES.PERIODES),
+        gh.fetchJsonFile(DATA_FILES.PORTEFEUILLES),
+        gh.fetchJsonFile(DATA_FILES.KEYWORDS),
+        gh.fetchJsonFile(DATA_FILES.LEERUITKOMSTEN),
       ])
-      periodes.value = p
-      portefeuilles.value = pf
-      keywords.value = kw
-      leeruitkomsten.value = lu
+
+      // SHA's altijd bijwerken op basis van GitHub (nodig bij latere commits)
+      fileShas.value = {
+        [DATA_FILES.PERIODES]: p.sha,
+        [DATA_FILES.PORTEFEUILLES]: pf.sha,
+        [DATA_FILES.KEYWORDS]: kw.sha,
+        [DATA_FILES.LEERUITKOMSTEN]: lu.sha,
+      }
+      localStorage.setItem(CACHE_KEYS.SHAS, JSON.stringify(fileShas.value))
+
+      const persisted = discardDirty
+        ? new Set()
+        : new Set(JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]'))
+
+      // Niet-dirty bestanden: overschrijven met GitHub-versie
+      // Dirty bestanden: lokale cache-versie bewaren
+      const restore = (file, githubData, cacheKey, ref) => {
+        if (persisted.has(file)) {
+          const cached = localStorage.getItem(cacheKey)
+          if (cached) ref.value = JSON.parse(cached)
+        } else {
+          ref.value = githubData
+          localStorage.setItem(cacheKey, JSON.stringify(githubData))
+        }
+      }
+
+      restore(DATA_FILES.PERIODES,      p.data,  CACHE_KEYS.PERIODES,      periodes)
+      restore(DATA_FILES.PORTEFEUILLES, pf.data, CACHE_KEYS.PORTEFEUILLES, portefeuilles)
+      restore(DATA_FILES.KEYWORDS,      kw.data, CACHE_KEYS.KEYWORDS,      keywords)
+      restore(DATA_FILES.LEERUITKOMSTEN, lu.data, CACHE_KEYS.LEERUITKOMSTEN, leeruitkomsten)
+
+      dirtyFiles.value = persisted
+      if (discardDirty) localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
+
+      hasUpdates.value = false
+      updateStatus.value = {}
     } catch (e) {
-      hasError.value = true
-      console.error('Laden van data mislukt', e)
-    } finally {
-      isLoading.value = false
+      console.error('GitHub laden mislukt, terugvallen op cache', e)
+      if (!loadFromCache()) {
+        hasError.value = true
+      }
     }
   }
 
-  // ── Opslaan ───────────────────────────────────────────────────────────────
+  /**
+   * Herstelt mojibake in gecachede data: UTF-8-bytes die abusievelijk als Latin-1 zijn
+   * opgeslagen (bijv. ë → Ã«). De charCodes van die Latin-1-chars vormen samen geldige
+   * UTF-8; TextDecoder decodeert ze dan terug naar het juiste teken.
+   * Strings die al correct zijn (charCode > 127 maar geen geldige UTF-8-reeks) gooien
+   * een fout en worden ongewijzigd teruggegeven.
+   */
+  function repairMojibake(val) {
+    if (typeof val === 'string') {
+      try {
+        const bytes = Uint8Array.from(val, c => c.charCodeAt(0))
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+      } catch {
+        return val
+      }
+    }
+    if (Array.isArray(val)) return val.map(repairMojibake)
+    if (val && typeof val === 'object') {
+      return Object.fromEntries(Object.entries(val).map(([k, v]) => [k, repairMojibake(v)]))
+    }
+    return val
+  }
+
+  function loadFromCache() {
+    const p  = localStorage.getItem(CACHE_KEYS.PERIODES)
+    const pf = localStorage.getItem(CACHE_KEYS.PORTEFEUILLES)
+    const kw = localStorage.getItem(CACHE_KEYS.KEYWORDS)
+    const lu = localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN)
+    if (p && pf && kw && lu) {
+      periodes.value       = repairMojibake(JSON.parse(p))
+      portefeuilles.value  = repairMojibake(JSON.parse(pf))
+      keywords.value       = repairMojibake(JSON.parse(kw))
+      leeruitkomsten.value = repairMojibake(JSON.parse(lu))
+      // Dirty state herstellen zodat de badge en publiceer-knop correct zijn na refresh
+      const persisted = JSON.parse(localStorage.getItem(CACHE_KEYS.DIRTY_FILES) || '[]')
+      dirtyFiles.value = new Set(persisted)
+      return true
+    }
+    return false
+  }
+
+  // Haalt de nieuwste versie op van GitHub, maar bewaart lokale dirty wijzigingen.
+  async function refreshFromGitHub() {
+    isLoading.value = true
+    hasError.value = false
+    await loadFromGitHub()
+    isLoading.value = false
+  }
+
+  // Gooit alle lokale wijzigingen weg en laadt de GitHub-versie volledig opnieuw.
+  // Alleen aanroepen na expliciete bevestiging door de gebruiker.
+  async function discardChanges() {
+    dirtyFiles.value = new Set()
+    localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
+    isLoading.value = true
+    hasError.value = false
+    await loadFromGitHub({ discardDirty: true })
+    isLoading.value = false
+  }
+
+  // ── Update-detectie ───────────────────────────────────────────────────────
+
+  async function checkForUpdates() {
+    const gh = useGitHubData()
+    const { owner, repo } = gh.settings()
+    if (!owner || !repo) return
+
+    const storedShas = JSON.parse(localStorage.getItem(CACHE_KEYS.SHAS) || '{}')
+    if (Object.keys(storedShas).length === 0) {
+      hasUpdates.value = true
+      return
+    }
+
+    try {
+      const remoteShas = await gh.getTreeShas()
+      const trackedFiles = Object.values(DATA_FILES)
+      const status = {}
+      let anyUpdate = false
+
+      for (const file of trackedFiles) {
+        const localSha  = storedShas[file] || null
+        const remoteSha = remoteShas[file] || null
+        const hasUpdate = !!(localSha && remoteSha && localSha !== remoteSha)
+        if (hasUpdate) anyUpdate = true
+        status[file] = { hasUpdate, localSha, remoteSha }
+      }
+
+      updateStatus.value = status
+      hasUpdates.value = anyUpdate
+    } catch (e) {
+      console.error('Update-check mislukt:', e.message)
+    }
+  }
+
+  // ── Opslaan (cache + dirty tracking) ─────────────────────────────────────
+
+  function persistDirty(file) {
+    dirtyFiles.value = new Set([...dirtyFiles.value, file])
+    localStorage.setItem(CACHE_KEYS.DIRTY_FILES, JSON.stringify([...dirtyFiles.value]))
+  }
+
   function saveKeywords() {
-    fetch(API.KEYWORDS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(keywords.value, null, 2),
-    }).catch(e => {
-      saveError.value = 'Keywords opslaan mislukt. Controleer of de dev-server actief is.'
-      console.error('Could not save keywords', e)
-    })
+    localStorage.setItem(CACHE_KEYS.KEYWORDS, JSON.stringify(keywords.value))
+    persistDirty(DATA_FILES.KEYWORDS)
   }
 
   function saveLeeruitkomsten() {
-    fetch(API.LEERUITKOMSTEN, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(leeruitkomsten.value, null, 2),
-    }).catch(e => {
-      saveError.value = 'Leeruitkomsten opslaan mislukt. Controleer of de dev-server actief is.'
-      console.error('Could not save leeruitkomsten', e)
-    })
+    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify(leeruitkomsten.value))
+    persistDirty(DATA_FILES.LEERUITKOMSTEN)
+  }
+
+  // ── Publiceren naar GitHub via PR ─────────────────────────────────────────
+
+  async function publishChanges(branchName, prTitle, prBody) {
+    const gh = useGitHubData()
+
+    if (!localStorage.getItem(SETTINGS_KEYS.GH_TOKEN)) {
+      throw new Error('Je bent niet ingelogd. Ga naar Instellingen om in te loggen.')
+    }
+    const { owner, repo } = gh.settings()
+    if (!owner || !repo) {
+      throw new Error('Geen data-repository geconfigureerd. Ga naar Instellingen.')
+    }
+    if (dirtyFiles.value.size === 0) {
+      throw new Error('Er zijn geen wijzigingen om te publiceren.')
+    }
+
+    await gh.createBranch(branchName)
+
+    const fileDataMap = {
+      [DATA_FILES.KEYWORDS]:      keywords.value,
+      [DATA_FILES.LEERUITKOMSTEN]: leeruitkomsten.value,
+    }
+
+    for (const fileName of dirtyFiles.value) {
+      const data = fileDataMap[fileName]
+      if (!data) continue
+      const { sha } = await gh.fetchJsonFile(fileName, branchName)
+      await gh.commitJsonFile(fileName, data, sha, branchName, `chore: update ${fileName}`)
+    }
+
+    const pr = await gh.createPR(prTitle, prBody || '', branchName)
+    dirtyFiles.value = new Set()
+    localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
+    return pr.html_url
   }
 
   // ── Keywords ──────────────────────────────────────────────────────────────
@@ -102,10 +290,12 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
 
   return {
     periodes, portefeuilles, keywords, leeruitkomsten,
-    isLoading, hasError, saveError,
-    loadAll,
+    isLoading, hasError,
+    dirtyFiles, hasUpdates, updateStatus,
+    loadAll, refreshFromGitHub, discardChanges, checkForUpdates,
     addKeyword, updateKeyword, deleteKeyword,
     addLeeruitkomst, updateLeeruitkomst, deleteLeeruitkomst,
     generateId,
+    publishChanges,
   }
 })

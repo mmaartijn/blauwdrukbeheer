@@ -66,35 +66,37 @@
 - [x] Bug opgelost: contextmenu sloot te vroeg door `mousedown`-timing; opgelost met `@mousedown.stop`.
 - [x] Matrix: portefeuilles standaard uit, categorieën standaard uitgeklapt; vaste labelbreedtes; dash/vinkje toggle in portefeuilleклeur; Bloom-badges zonder gekleurde itemranden.
 
-## Fase 9 – GitHub Pages + GitHub Data Sync
+## Fase 9 – GitHub Pages + GitHub Data Sync (Huidig)
 > Doel: de app volledig statisch hosten via GitHub Pages en JSON-data beheren in een aparte, gebruiker-gekozen GitHub-repo via de GitHub API. Wijzigingen lopen altijd via een feature branch + PR. PDFs worden automatisch gegenereerd door een GitHub Action in de data-repo.
 
 ### 9a – Static build & GitHub Pages deployment
-- [ ] `vite.config.ts` aanpassen voor correcte `base`-pad op GitHub Pages (bijv. `/blauwdrukbeheer/`)
-- [ ] GitHub Actions workflow toevoegen in `.github/workflows/deploy.yml`: bij push naar `main` → `npm run build` → deploy naar `gh-pages` branch
-- [ ] Vite data-middleware verwijderen (niet meer nodig in productie)
-- [ ] Pinia stores omschrijven: JSON-data niet meer via `POST /data/...` maar via GitHub API + localStorage-cache
+- [x] `vite.config.js` aanpassen voor correcte `base`-pad op GitHub Pages (`/blauwdrukbeheer/`), alleen bij `build`
+- [x] `copyDataPlugin` in `vite.config.js`: kopieert `/Data/*.json` naar `dist/data/` bij `npm run build`
+- [x] GitHub Actions workflow `.github/workflows/deploy.yml`: bij push naar `main` → build → deploy via `actions/deploy-pages`
+- [x] Vite data-middleware blijft dev-only (zat al in `configureServer`, niet aangepast)
+- [x] Pinia store omgeschreven: dev → Vite middleware; productie → GitHub API + localStorage-cache + statische fallback
 
 ### 9b – GitHub OAuth (Device Auth Flow)
-- [ ] `config.json` toevoegen aan repo root met `githubClientId` (en eventueel andere instellingen)
-- [ ] `GitHubAuthService` composable: implementeer Device Auth Flow (`/login/device/code` → polling `/login/oauth/access_token`)
-- [ ] Inlogpagina (`/instellingen` of `/login`): toon device code + verificatie-URL, wacht op autorisatie
-- [ ] Token opslaan in localStorage; bij aanwezig token: automatisch ingelogd
-- [ ] Uitlogknop + token wissen
+- [x] `Src/public/config.json` aangemaakt met `githubClientId` (leeg; in te vullen door gebruiker)
+- [x] `useGitHubAuth` composable: Device Auth Flow (`startDeviceFlow` + `pollForToken`) én PAT-fallback (`setPatToken`)
+- [x] `InstellingenView` (`/instellingen`): toon device code + verificatie-URL, wacht op autorisatie
+- [x] Token opgeslagen in localStorage (`gh_token`); bij aanwezig token: automatisch ingelogd
+- [x] Uitlogknop + token wissen
+- **Let op:** GitHub stuurt geen CORS-headers naar `login/oauth/access_token` voor browser-requests. Als Device Flow mislukt wegens CORS, kan de gebruiker een PAT invoeren als alternatief.
 
 ### 9c – Data-repo configuratie & JSON synchronisatie
-- [ ] Instellingenpagina: gebruiker kan GitHub-gebruikersnaam + repo-naam invoeren en opslaan (localStorage)
-- [ ] `GitHubDataService` composable: haal JSON-bestanden op via GitHub Contents API (`GET /repos/:owner/:repo/contents/:path`)
-- [ ] Bij opstarten: JSON-data laden vanuit GitHub API → cachen in localStorage (als fallback bij offline)
-- [ ] "Vernieuwen"-knop om data opnieuw te fetchen van GitHub
+- [x] `InstellingenView`: gebruiker kan GitHub-gebruikersnaam + repo-naam invoeren (opgeslagen in localStorage)
+- [x] `useGitHubData` composable: `fetchJsonFile`, `commitJsonFile`, `createBranch`, `createPR` via GitHub Contents API
+- [x] Bij opstarten: JSON-data geladen vanuit GitHub API → SHA's bewaard voor commits; gecached in localStorage
+- [x] Fallback-volgorde: GitHub API → localStorage-cache → statische JSON-bestanden in build
+- [x] "Vernieuwen"-knop (`refreshFromGitHub`) in `InstellingenView`
 
 ### 9d – Wijzigingen committen via feature branch + PR
-- [ ] Wijzigingen in de app worden bijgehouden (dirty tracking per JSON-bestand)
-- [ ] "Wijzigingen publiceren"-knop opent een dialoog: branch-naam invoeren + PR-beschrijving
-- [ ] App maakt feature branch aan in data-repo via GitHub API
-- [ ] Gewijzigde JSON-bestanden worden gecommit naar de feature branch (`PUT /repos/:owner/:repo/contents/:path`)
-- [ ] PR aanmaken via GitHub API (`POST /repos/:owner/:repo/pulls`)
-- [ ] Link naar de aangemaakte PR tonen in de UI
+- [x] Dirty tracking in store: `dirtyFiles` (Set van bestandsnamen) per JSON-bestand
+- [x] Amber badge in navigatie met aantal wijzigingen opent `PublicerenModal`
+- [x] `PublicerenModal`: branch-naam + PR-titel + omschrijving invullen → publiceren
+- [x] `publishChanges()` in store: branch aanmaken → dirty bestanden committen → PR aanmaken
+- [x] PR-URL getoond in modal na succes
 
 ### 9e – Client-side PDF-generatie en committen naar data-repo
 > Volledig in de browser, geen GitHub Actions. De app-repo hoeft de data-repo niet te kennen. PDFs worden gegenereerd vóór het aanmaken van de PR en meegecommit in dezelfde feature branch.
