@@ -70,14 +70,22 @@
           <a :href="prUrl" target="_blank" rel="noopener" class="text-blue-600 underline break-all">{{ prUrl }}</a>
         </div>
 
-        <button
-          v-if="!prUrl"
-          @click="publish"
-          :disabled="publishing || !prTitle.trim()"
-          class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
-        >
-          {{ publishing ? 'Bezig met publiceren…' : 'Publiceren' }}
-        </button>
+        <div v-if="!prUrl" class="space-y-2">
+          <button
+            @click="publish"
+            :disabled="publishing || !prTitle.trim()"
+            class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {{ publishing ? 'Bezig met publiceren…' : 'Publiceren' }}
+          </button>
+          <p v-if="pdfProgress" class="text-xs text-blue-600 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 animate-spin flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+            {{ pdfProgress }}
+          </p>
+        </div>
       </div>
 
       <!-- Status-kaart (GitHub sync) -->
@@ -228,7 +236,8 @@ const prTitle  = ref(`Blauwdruk update ${today}`)
 const prBody   = ref('')
 const publishing   = ref(false)
 const publishError = ref(null)
-const prUrl    = ref(null)
+const prUrl        = ref(null)
+const pdfProgress  = ref(null)
 
 // Branchnaam automatisch afgeleid van de PR-titel
 const branchName = computed(() => {
@@ -286,12 +295,19 @@ async function doDiscard() {
 async function publish() {
   publishing.value = true
   publishError.value = null
+  pdfProgress.value = null
   try {
-    prUrl.value = await store.publishChanges(branchName.value, prTitle.value, prBody.value)
+    prUrl.value = await store.publishChanges(
+      branchName.value,
+      prTitle.value,
+      prBody.value,
+      (current, total, naam) => { pdfProgress.value = `PDF genereren ${current}/${total}: ${naam}` }
+    )
   } catch (e) {
     publishError.value = e.message
   } finally {
     publishing.value = false
+    pdfProgress.value = null
   }
 }
 

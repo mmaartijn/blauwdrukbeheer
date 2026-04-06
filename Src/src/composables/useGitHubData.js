@@ -71,6 +71,38 @@ export function useGitHubData() {
     return res.json()
   }
 
+  /**
+   * Commit een willekeurig bestand (base64-content) naar een branch.
+   * sha is optioneel: ontbreekt voor nieuwe bestanden, verplicht bij overschrijven.
+   */
+  async function commitFile(filePath, base64Content, sha, branch, message) {
+    const payload = { message, content: base64Content, branch }
+    if (sha) payload.sha = sha
+    const res = await fetch(`${repoBase()}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || `Commit mislukt voor ${filePath} (${res.status})`)
+    }
+    return res.json()
+  }
+
+  /**
+   * Haalt de SHA op van een bestand op een branch, of null als het bestand niet bestaat.
+   */
+  async function fetchFileSha(filePath, branch) {
+    const url = new URL(`${repoBase()}/contents/${filePath}`)
+    url.searchParams.set('ref', branch)
+    const res = await fetch(url.toString(), { headers: apiHeaders() })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`SHA ophalen mislukt voor ${filePath} (${res.status})`)
+    const body = await res.json()
+    return body.sha || null
+  }
+
   // ── Branch beheer ─────────────────────────────────────────────────────────
 
   /**
@@ -127,5 +159,5 @@ export function useGitHubData() {
     return shas
   }
 
-  return { settings, fetchJsonFile, commitJsonFile, createBranch, createPR, getTreeShas }
+  return { settings, fetchJsonFile, commitJsonFile, commitFile, fetchFileSha, createBranch, createPR, getTreeShas }
 }
