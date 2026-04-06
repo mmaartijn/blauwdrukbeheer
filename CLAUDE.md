@@ -1,63 +1,36 @@
-# Blauwdrukbeheer – Regels voor Claude
+# Blauwdrukbeheer
+Project voor het beheren en visualiseren van de onderwijsblauwdruk HBO Informatica Software Ontwikkeling.
 
-## Projectdoel
-Webapplicatie voor het beheren van de onderwijsblauwdruk HBO Informatica Software Ontwikkeling (Avans).
-Bronbestanden staan in `/Bronbestanden`. Geïmporteerde en beheerde data staat in `/Data` als JSON.
+## Technologiestack
+- **Frontend:** Vue 3 (Composition API), Vite, Pinia (State Management), Tailwind CSS v4, Vue Router
+- **Data:** JSON bestanden in `/Data` (GitHub als bron/persistenz)
+- **Synchronisatie:** GitHub API (`Octokit`-like implementatie in `Src/src/composables/useGitHubData.js`)
+
+## Ontwikkelcommando's (in `/Src`)
+- `npm install` – installeer dependencies
+- `npm run dev` – start development server (incl. vite-plugin-data-proxy voor JSON opslag)
+- `npm run build` – bouw voor productie (naar `/dist`)
 
 ## Mappenstructuur
-```
-/Bronbestanden   – originele Word/Excel-bronbestanden (niet aanpassen)
-/Data            – alle applicatiedata als JSON-bestanden
-/Src             – alle broncode van de webapplicatie
-```
-
-## Tech stack
-- **Frontend:** Vue 3 (Composition API) + Vite
-- **State management:** Pinia
-- **Routing:** Vue Router
-- **Styling:** TailwindCSS v4 (via `@tailwindcss/vite` plugin) — gebruik altijd `@reference "tailwindcss";` als eerste regel in elk `<style>`-blok dat `@apply` gebruikt
-- **Data:** JSON-bestanden in `/Data`, geen aparte backend/database
-- **Taal UI:** Nederlands
-
-## Codestandaarden
-- Vue SFC-bestanden (`.vue`) met `<script setup>` syntax
-- Componenten in PascalCase, bestanden in kebab-case
-- Gebruik `composables/` voor herbruikbare logica
-- Valideer gebruikersinput aan de kant van het formulier
-- Geen backend/database nodig — lees/schrijf JSON-bestanden direct via de browser naar de `/Data` map middels een custom Vite-middleware POST-endpoint (voorkom het gebruik van localStorage als 'single source of truth').
+- `/Src` – de Vue frontend applicatie
+  - `/src/stores/blauwdruk.js` – Centrale Pinia store (beheer van alle blauwdrukdata)
+  - `/src/views` – Belangrijkste pagina's (Matrix, Modules, Instellingen)
+  - `/src/components` – Herbruikbare componenten (Modals, Toggles)
 
 ## Datamodel (JSON)
-Zie `/Data` voor de actuele bestanden. Hoofdentiteiten:
+Zie `/Data` for de actuele bestanden. Hoofdentiteiten:
 - **periodes.json** – alle onderwijsperiodes incl. het jaar en welke blokken (bijv. 1 t/m 4) ze beslaan
-- **leeruitkomsten.json** – leeruitkomsten per periode
 - **portefeuilles.json** – portefeuille-categorieën (ABV, Databases, etc.)
 - **keywords.json** – keywords per portefeuille+periode, met Bloom-niveau en toelichting
+- **modules.json** – hiërarchische structuur met modules en geneste leeruitkomsten. Duplicate data van modulenaam en periode is hieruit verwijderd.
 
 ## Functies (zie ook `STATUS.md`)
 1. **Keywords beheren** – toevoegen/bewerken/verwijderen van keywords; per keyword: naam, Bloom-niveau (1–6), toelichting, periode, portefeuille
-2. **Leeruitkomsten beheren** – CRUD voor leeruitkomsten met alle velden uit de bronbestanden
+2. **Leeruitkomsten beheren** – CRUD voor leeruitkomsten binnen de context van een module (in `modules.json`)
 3. **Overzicht/matrix** – visuele 4x4 Jaar × Blok matrix met colspan, opgedeeld en kleurgecodeerd in portefeuilles
 4. **Modulebeschrijvingen** – overzichtspagina (`/modules`) en detailpagina (`/modules/:periodeId`) met leeruitkomsten, toetsmatrijs en onderwerpen per portefeuille; print-klaar via `@media print`; volledig bewerkbaar via rechtsklik-contextmenu (leeruitkomsten, modulenaam, keywords)
 
-## Start van elke sessie / taak (VERPLICHT)
-Voordat je ook maar één regel code schrijft of aanpast, doe je het volgende:
-1. Lees `CLAUDE.md` (dit bestand) volledig door.
-2. Lees `STATUS.md` — wat is de huidige stand van het project?
-3. Lees `FOUTEN.md` — welke valkuilen zijn er al eerder ingetrapt?
-4. Lees `TECHNICAL_DEBT.md` — wat is de bekende schuld; los je iets op of introduceer je iets nieuws?
-5. Lees alle bestanden die je gaat aanpassen vóórdat je ze wijzigt.
-
-Pas daarna begin je met de uitvoering.
-
-## Werkwijze
-- **Vraag bij onduidelijkheden altijd aan de gebruiker wat hij wil.** Maak geen aannames over scope of ontwerp.
-- **VIER-EENHEID DOCUMENTATIE (CRUCIAAL):** Je MOET te allen tijde rekening houden met de bestanden `CLAUDE.md`, `FOUTEN.md`, `STATUS.md` en `TECHNICAL_DEBT.md`. Lees ze, hou hun regels in acht en wees proactief in het updaten ervan als je een taak of iteratie afrondt.
-  - Houd `CLAUDE.md` up-to-date indien projectregels of de stack veranderen.
-  - Vink in `STATUS.md` altijd netjes af wat je zojuist hebt voltooid (en voeg scopes toe als dat nodig is).
-  - Loopt er iets stuk of is er een belangrijke les geleerd qua architectuur/interpretatie? Gelijk en zonder pardon vastleggen in `FOUTEN.md` ter herinnering.
-  - **Doe na elke taak een mini-audit:** controleer of de gewijzigde of aangrenzende code nieuwe technical debt introduceert of bestaande schuld oplost. Werk `TECHNICAL_DEBT.md` bij: vink opgeloste items af en voeg nieuwe bevindingen toe met datum.
-- **Voer altijd `npm run test` en `npm run lint:check` uit (vanuit `/Src`) vóórdat je code commit.** Commit nooit als er testfouten of lint-errors zijn.
-- Lees altijd bestaande bestanden vóór je ze aanpast.
-- Maak geen extra bestanden tenzij strikt noodzakelijk.
-- Voeg geen features toe die niet gevraagd zijn.
-- Schrijf commentaar alleen waar de logica niet vanzelfsprekend is.
+## Richtlijnen
+- **Tailwind v4:** Gebruik `@reference "tailwindcss";` bovenaan `<style>` blokken voor `@apply`.
+- **Data Opslag:** Wijzigingen in de store worden via `saveModules()`, `saveKeywords()` etc. weggeschreven naar `/Data/*.json` (lokaal) of gepusht naar GitHub.
+- **Naamgeving:** Gebruik Nederlandse termen voor domein-gerelateerde velden (bijv. `leeruitkomsten`, `portefeuille`) en Engelse termen voor technische zaken (`id`, `label`, `settings`).

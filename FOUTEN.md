@@ -30,3 +30,10 @@ Dit bestand houdt bij welke fouten er gemaakt zijn en hoe ze in de toekomst voor
 **Context:** Bij het toevoegen van uitklap-mogelijkheden in de matrix vroeg de gebruiker om een functionaliteit "bovenin de categorie". Dat werd geïnterpreteerd als de filter-headerbalk van de pagina (en dus globaal), in plaats van binnenin het specifieke categorie-blok in de tabel zelf.
 **Oplossing:** Zowel in de filterbalk als binnen de tabelcellen aparte plus/min knopjes in het leven geroepen, zodat óf per specifieke categoriecell genavigeerd kan worden, óf massaal (in de header).
 **Voorkomen door:** Beter checken of termen zoals "categorie" duiden op een specifiek visueel element in de cel, of de abstractere definitie (de portefeuille zélf over de gehele UI). Vraag desnoods om verduidelijking of het om een globale of lokale actie gaat als het niet direct helder is op te maken uit de Vue component tree.
+
+---
+
+**Fout:** Redundante data in `leeruitkomsten.json` (module-naam werd herhaald bij elke leeruitkomst).
+**Context:** Oorspronkelijk was elke leeruitkomst een los object in een platte lijst.
+**Oplossing:** `leeruitkomsten.json` is gerefactord naar `modules.json`, waarbij de structuur nu is: Lijst met modules → per module een lijst met leeruitkomsten. Duplicate data van modulenaam en periode is nu verwijderd. De Pinia store en alle views zijn aangepast naar deze hiërarchale opzet.
+**Voorkomen door:** Bij 1-op-veel relaties altijd direct een geneste structuur in JSON overwegen in plaats van denormalisatie, tenzij performance bij zeer grote datasets (10k+) een rol speelt.

@@ -3,7 +3,7 @@ export const DATA_FILES = {
   PERIODES: 'periodes.json',
   PORTEFEUILLES: 'portefeuilles.json',
   KEYWORDS: 'keywords.json',
-  LEERUITKOMSTEN: 'leeruitkomsten.json',
+  MODULES: 'modules.json',
 }
 
 // localStorage-sleutels voor gecachede JSON-data
@@ -11,7 +11,7 @@ export const CACHE_KEYS = {
   PERIODES: 'blauwdruk_cache_periodes',
   PORTEFEUILLES: 'blauwdruk_cache_portefeuilles',
   KEYWORDS: 'blauwdruk_cache_keywords',
-  LEERUITKOMSTEN: 'blauwdruk_cache_leeruitkomsten',
+  MODULES: 'blauwdruk_cache_modules',
   // Blob-SHA's van de bestanden die we als laatste van GitHub hebben geladen.
   // Formaat: JSON-object { 'keywords.json': 'abc123', ... }
   SHAS: 'blauwdruk_cache_shas',
