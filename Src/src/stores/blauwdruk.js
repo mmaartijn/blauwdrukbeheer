@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { CACHE_KEYS, DATA_FILES, SETTINGS_KEYS } from '@/constants/api'
 import { useGitHubData } from '@/composables/useGitHubData'
 
@@ -277,38 +277,37 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
   }
 
   // ── Leeruitkomsten (via Modules) ─────────────────────────────────────────
-  
-  function findModuleByLuId(id) {
-    return modules.value.find(m => m.leeruitkomsten.some(l => l.id === id))
-  }
 
   function addLeeruitkomst(lu, moduleNameOrId) {
-    // Zoek module op naam of id
+    // Zoek module op id of naam; val terug op periode als geen expliciete module opgegeven
     let mod = modules.value.find(m => m.id === moduleNameOrId || m.naam === moduleNameOrId)
     if (!mod && lu.periode) {
-      // Fallback: zoek op periode
-       mod = modules.value.find(m => m.periode === lu.periode)
+      mod = modules.value.find(m => m.periode === lu.periode)
     }
-    
     if (mod) {
-      const { module, periode, ...luPure } = lu
-      mod.leeruitkomsten.push(luPure)
+      // Strip afgeleide velden die de store zelf toevoegt via de computed (module, periode)
+      mod.leeruitkomsten.push(omitComputedFields(lu))
       saveModules()
     } else {
-      console.warn('Kan module niet vinden voor nieuwe leeruitkomst:', moduleNameOrId)
+      console.error('Kan module niet vinden voor nieuwe leeruitkomst:', moduleNameOrId)
     }
   }
 
   function updateLeeruitkomst(updated) {
-    // Omdat we geen 'module' property meer hebben op de LU zelf in modules.json,
-    // moeten we de module vinden die deze LU bevat.
     const mod = modules.value.find(m => m.leeruitkomsten.some(l => l.id === updated.id))
     if (mod) {
       const idx = mod.leeruitkomsten.findIndex(l => l.id === updated.id)
-      const { module, periode, ...luPure } = updated
-      mod.leeruitkomsten[idx] = luPure
+      // Strip afgeleide velden die de store zelf toevoegt via de computed (module, periode)
+      mod.leeruitkomsten[idx] = omitComputedFields(updated)
       saveModules()
     }
+  }
+
+  // Verwijdert door de computed toegevoegde velden zodat ze niet in modules.json belanden
+  function omitComputedFields(lu) {
+    const { module, periode, ...rest } = lu
+    void module; void periode
+    return rest
   }
 
   function deleteLeeruitkomst(id) {

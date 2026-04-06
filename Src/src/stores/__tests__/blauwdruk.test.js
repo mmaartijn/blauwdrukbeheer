@@ -9,13 +9,13 @@ function makeGitHubFileResponse(data, sha = 'abc123') {
   return { ok: true, json: () => Promise.resolve({ content, sha }) }
 }
 
-function setupGitHubFileFetches({ periodes = [], portefeuilles = [], keywords = [], leeruitkomsten = [], shas = {} } = {}) {
-  const sha = { p: 'sha-p', pf: 'sha-pf', kw: 'sha-kw', lu: 'sha-lu', ...shas }
+function setupGitHubFileFetches({ periodes = [], portefeuilles = [], keywords = [], modules = [], shas = {} } = {}) {
+  const sha = { p: 'sha-p', pf: 'sha-pf', kw: 'sha-kw', m: 'sha-m', ...shas }
   mockFetch
     .mockResolvedValueOnce(makeGitHubFileResponse(periodes,      sha.p))
     .mockResolvedValueOnce(makeGitHubFileResponse(portefeuilles, sha.pf))
     .mockResolvedValueOnce(makeGitHubFileResponse(keywords,      sha.kw))
-    .mockResolvedValueOnce(makeGitHubFileResponse(leeruitkomsten, sha.lu))
+    .mockResolvedValueOnce(makeGitHubFileResponse(modules,       sha.m))
 }
 
 
@@ -172,30 +172,42 @@ describe('deleteKeyword', () => {
 // ── addLeeruitkomst ──────────────────────────────────────────────────────────
 
 describe('addLeeruitkomst', () => {
-  it('voegt een leeruitkomst toe', () => {
+  it('voegt een leeruitkomst toe aan de bijbehorende module (via periode)', () => {
     const store = useBlauwdrukStore()
-    const lu = { id: 'lu-1', naam: 'Full Stack', ec: 15, periode: 'p2122-3' }
+    store.modules = [{ id: 'mod-1', naam: 'Test Module', periode: 'P1', leeruitkomsten: [] }]
+    const lu = { id: 'lu-1', naam: 'Full Stack', ec: 15, periode: 'P1' }
     store.addLeeruitkomst(lu)
     expect(store.leeruitkomsten).toHaveLength(1)
-    expect(store.leeruitkomsten[0]).toEqual(lu)
+    // computed voegt module-naam en periode toe
+    expect(store.leeruitkomsten[0]).toMatchObject({ id: 'lu-1', naam: 'Full Stack', ec: 15, module: 'Test Module', periode: 'P1' })
   })
 
-  it('markeert leeruitkomsten.json als dirty', () => {
+  it('markeert modules.json als dirty', () => {
     const store = useBlauwdrukStore()
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [] }]
+    store.addLeeruitkomst({ id: 'lu-1', naam: 'Test', periode: 'P1' })
+    expect(store.dirtyFiles.has(DATA_FILES.MODULES)).toBe(true)
+  })
+
+  it('slaat de modules op in de cache', () => {
+    const store = useBlauwdrukStore()
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [] }]
+    store.addLeeruitkomst({ id: 'lu-1', naam: 'Test', ec: 10, periode: 'P1' })
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.MODULES))
+    expect(cached[0].leeruitkomsten[0].ec).toBe(10)
+  })
+
+  it('doet niets als er geen passende module is', () => {
+    const store = useBlauwdrukStore()
+    store.modules = []
     store.addLeeruitkomst({ id: 'lu-1', naam: 'Test' })
-    expect(store.dirtyFiles.has(DATA_FILES.LEERUITKOMSTEN)).toBe(true)
-  })
-
-  it('slaat de leeruitkomsten op in de cache', () => {
-    const store = useBlauwdrukStore()
-    store.addLeeruitkomst({ id: 'lu-1', naam: 'Test', ec: 10 })
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN))
-    expect(cached[0].ec).toBe(10)
+    expect(store.leeruitkomsten).toHaveLength(0)
   })
 
   it('bewaart leeruitkomst met lege arrays voor optionele velden', () => {
     const store = useBlauwdrukStore()
-    const lu = { id: 'lu-1', naam: 'Test', eindkwalificaties: [], deelstappen: [] }
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [] }]
+    const lu = { id: 'lu-1', naam: 'Test', eindkwalificaties: [], deelstappen: [], periode: 'P1' }
     store.addLeeruitkomst(lu)
     expect(store.leeruitkomsten[0].eindkwalificaties).toEqual([])
   })
@@ -206,33 +218,33 @@ describe('addLeeruitkomst', () => {
 describe('updateLeeruitkomst', () => {
   it('wijzigt de juiste leeruitkomst', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = [
+    store.modules = [{ id: 'mod-1', naam: 'Mod A', periode: 'P1', leeruitkomsten: [
       { id: 'lu-1', naam: 'Full Stack', ec: 15 },
       { id: 'lu-2', naam: 'Security', ec: 10 },
-    ]
+    ]}]
     store.updateLeeruitkomst({ id: 'lu-1', naam: 'Full Stack Pro', ec: 20 })
-    expect(store.leeruitkomsten[0]).toEqual({ id: 'lu-1', naam: 'Full Stack Pro', ec: 20 })
+    expect(store.leeruitkomsten[0]).toMatchObject({ id: 'lu-1', naam: 'Full Stack Pro', ec: 20 })
     expect(store.leeruitkomsten[1].naam).toBe('Security')
   })
 
   it('doet niets als id niet bestaat', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = [{ id: 'lu-1', naam: 'Test' }]
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [{ id: 'lu-1', naam: 'Test' }] }]
     store.updateLeeruitkomst({ id: 'lu-999', naam: 'Onbekend' })
     expect(store.leeruitkomsten[0].naam).toBe('Test')
   })
 
-  it('slaat de bijgewerkte lijst op in de cache', () => {
+  it('slaat de bijgewerkte modules op in de cache', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = [
+    store.modules = [{ id: 'mod-1', naam: 'Mod A', periode: 'P1', leeruitkomsten: [
       { id: 'lu-1', naam: 'Full Stack', ec: 15 },
       { id: 'lu-2', naam: 'Security', ec: 10 },
-    ]
+    ]}]
     store.updateLeeruitkomst({ id: 'lu-1', naam: 'Full Stack Pro', ec: 20 })
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.LEERUITKOMSTEN))
-    expect(cached).toHaveLength(2)
-    expect(cached[0].naam).toBe('Full Stack Pro')
-    expect(cached[1].naam).toBe('Security')
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEYS.MODULES))
+    expect(cached[0].leeruitkomsten).toHaveLength(2)
+    expect(cached[0].leeruitkomsten[0].naam).toBe('Full Stack Pro')
+    expect(cached[0].leeruitkomsten[1].naam).toBe('Security')
   })
 })
 
@@ -241,10 +253,10 @@ describe('updateLeeruitkomst', () => {
 describe('deleteLeeruitkomst', () => {
   it('verwijdert de leeruitkomst met het opgegeven id', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = [
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [
       { id: 'lu-1', naam: 'A' },
       { id: 'lu-2', naam: 'B' },
-    ]
+    ]}]
     store.deleteLeeruitkomst('lu-1')
     expect(store.leeruitkomsten).toHaveLength(1)
     expect(store.leeruitkomsten[0].id).toBe('lu-2')
@@ -252,14 +264,14 @@ describe('deleteLeeruitkomst', () => {
 
   it('verwijdert het laatste item en laat lege lijst achter', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = [{ id: 'lu-1', naam: 'A' }]
+    store.modules = [{ id: 'mod-1', naam: 'Test', periode: 'P1', leeruitkomsten: [{ id: 'lu-1', naam: 'A' }] }]
     store.deleteLeeruitkomst('lu-1')
     expect(store.leeruitkomsten).toHaveLength(0)
   })
 
-  it('crasht niet op een lege lijst', () => {
+  it('crasht niet op een lege modulelijst', () => {
     const store = useBlauwdrukStore()
-    store.leeruitkomsten = []
+    store.modules = []
     expect(() => store.deleteLeeruitkomst('lu-1')).not.toThrow()
   })
 })
@@ -295,10 +307,10 @@ describe('loadAll', () => {
   })
 
   it('laadt vanuit cache als repo niet geconfigureerd maar cache beschikbaar is', async () => {
-    localStorage.setItem(CACHE_KEYS.PERIODES,       JSON.stringify([{ id: 'p1' }]))
-    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES,  JSON.stringify([]))
-    localStorage.setItem(CACHE_KEYS.KEYWORDS,       JSON.stringify([]))
-    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN, JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.PERIODES,      JSON.stringify([{ id: 'p1' }]))
+    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES, JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.KEYWORDS,      JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.MODULES,       JSON.stringify([]))
 
     const store = useBlauwdrukStore()
     await store.loadAll()
@@ -311,12 +323,12 @@ describe('loadAll', () => {
     localStorage.setItem(SETTINGS_KEYS.GH_OWNER, 'testowner')
     localStorage.setItem(SETTINGS_KEYS.GH_REPO,  'testrepo')
 
-    const periodes       = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
-    const portefeuilles  = [{ id: 'db', label: 'Databases' }]
-    const keywords       = [{ id: 'kw-1', naam: 'SQL' }]
-    const leeruitkomsten = [{ id: 'lu-1', naam: 'Full Stack' }]
+    const periodes      = [{ id: 'p1', label: 'Jaar 1 Blok 1' }]
+    const portefeuilles = [{ id: 'db', label: 'Databases' }]
+    const keywords      = [{ id: 'kw-1', naam: 'SQL' }]
+    const modules       = [{ id: 'mod-1', naam: 'Test Module', periode: 'P1', leeruitkomsten: [{ id: 'lu-1', naam: 'Full Stack' }] }]
 
-    setupGitHubFileFetches({ periodes, portefeuilles, keywords, leeruitkomsten })
+    setupGitHubFileFetches({ periodes, portefeuilles, keywords, modules })
 
     const store = useBlauwdrukStore()
     await store.loadAll()
@@ -324,7 +336,9 @@ describe('loadAll', () => {
     expect(store.periodes).toEqual(periodes)
     expect(store.portefeuilles).toEqual(portefeuilles)
     expect(store.keywords).toEqual(keywords)
-    expect(store.leeruitkomsten).toEqual(leeruitkomsten)
+    expect(store.modules).toEqual(modules)
+    // leeruitkomsten is een computed die module-naam en periode toevoegt
+    expect(store.leeruitkomsten[0]).toMatchObject({ id: 'lu-1', naam: 'Full Stack', module: 'Test Module', periode: 'P1' })
     expect(store.hasError).toBe(false)
   })
 
@@ -339,16 +353,16 @@ describe('loadAll', () => {
 
     const shas = JSON.parse(localStorage.getItem(CACHE_KEYS.SHAS))
     expect(shas[DATA_FILES.KEYWORDS]).toBe('sha-kw')
-    expect(shas[DATA_FILES.LEERUITKOMSTEN]).toBe('sha-lu')
+    expect(shas[DATA_FILES.MODULES]).toBe('sha-m')
   })
 
   it('valt terug op cache als GitHub mislukt', async () => {
     localStorage.setItem(SETTINGS_KEYS.GH_OWNER,       'testowner')
     localStorage.setItem(SETTINGS_KEYS.GH_REPO,        'testrepo')
-    localStorage.setItem(CACHE_KEYS.PERIODES,           JSON.stringify([{ id: 'cached' }]))
-    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES,      JSON.stringify([]))
-    localStorage.setItem(CACHE_KEYS.KEYWORDS,           JSON.stringify([]))
-    localStorage.setItem(CACHE_KEYS.LEERUITKOMSTEN,     JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.PERIODES,      JSON.stringify([{ id: 'cached' }]))
+    localStorage.setItem(CACHE_KEYS.PORTEFEUILLES, JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.KEYWORDS,      JSON.stringify([]))
+    localStorage.setItem(CACHE_KEYS.MODULES,       JSON.stringify([]))
 
     mockFetch.mockRejectedValueOnce(new Error('Netwerk onbeschikbaar'))
 

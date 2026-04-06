@@ -31,9 +31,25 @@ async function mountView() {
   return wrapper
 }
 
+/**
+ * Converteert een platte LU-lijst (met module- en periode-veld) naar de geneste
+ * modules-structuur die de store opslaat.
+ */
+function luToModules(lus) {
+  const map = {}
+  for (const lu of lus) {
+    const key = `${lu.periode}::${lu.module}`
+    if (!map[key]) map[key] = { id: `mod-${key}`, naam: lu.module, periode: lu.periode, leeruitkomsten: [] }
+    map[key].leeruitkomsten.push(
+      Object.fromEntries(Object.entries(lu).filter(([k]) => k !== 'module' && k !== 'periode'))
+    )
+  }
+  return Object.values(map)
+}
+
 function seedStore(store, { periodes = [], leeruitkomsten = [], keywords = [], portefeuilles = [] } = {}) {
   store.periodes = periodes
-  store.leeruitkomsten = leeruitkomsten
+  store.modules = luToModules(leeruitkomsten)
   store.keywords = keywords
   store.portefeuilles = portefeuilles
 }
@@ -41,7 +57,7 @@ function seedStore(store, { periodes = [], leeruitkomsten = [], keywords = [], p
 // ── module computed ───────────────────────────────────────────────────────────
 
 describe('module computed', () => {
-  it('toont "Module niet gevonden" als er geen leeruitkomsten zijn', async () => {
+  it('toont "Module niet gevonden" als er geen modules zijn', async () => {
     const w = await mountView()
     seedStore(useBlauwdrukStore(w.vm.$pinia), { leeruitkomsten: [] })
     await w.vm.$nextTick()
@@ -210,6 +226,7 @@ describe('saveModuleNaam', () => {
       await input.setValue('Nieuwe Naam')
       await w.find('button.bg-blue-600').trigger('click')
       await w.vm.$nextTick()
+      // leeruitkomsten is een computed; module.naam in store.modules bepaalt de waarde
       expect(store.leeruitkomsten.every(lu => lu.module === 'Nieuwe Naam')).toBe(true)
     }
   })

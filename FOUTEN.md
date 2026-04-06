@@ -37,3 +37,17 @@ Dit bestand houdt bij welke fouten er gemaakt zijn en hoe ze in de toekomst voor
 **Context:** Oorspronkelijk was elke leeruitkomst een los object in een platte lijst.
 **Oplossing:** `leeruitkomsten.json` is gerefactord naar `modules.json`, waarbij de structuur nu is: Lijst met modules → per module een lijst met leeruitkomsten. Duplicate data van modulenaam en periode is nu verwijderd. De Pinia store en alle views zijn aangepast naar deze hiërarchale opzet.
 **Voorkomen door:** Bij 1-op-veel relaties altijd direct een geneste structuur in JSON overwegen in plaats van denormalisatie, tenzij performance bij zeer grote datasets (10k+) een rol speelt.
+
+---
+
+**Fout:** Bij het omzetten van `leeruitkomsten` naar een Pinia `computed` werd `computed` niet meegeïmporteerd uit `vue`, wat een stille runtime-fout veroorzaakte.
+**Context:** Gemini deed de refactoring van de store (toevoegen `computed`), maar vergat de import aan te passen. De app bouwde niet.
+**Oplossing:** `import { ref, computed } from 'vue'` in `blauwdruk.js`.
+**Voorkomen door:** Na elke structurele storewijziging altijd `npm run lint:check` uitvoeren vóór te committen — `no-undef` pikt ontbrekende imports direct op.
+
+---
+
+**Fout:** View-tests die `store.leeruitkomsten = [...]` deden werkten niet meer nadat `leeruitkomsten` een `computed` (readonly) werd.
+**Context:** `createTestingPinia` negeert stille assignments naar computed refs. De tests rendeerden lege views zonder foutmelding.
+**Oplossing:** Tests seeden nu `store.modules` via een `luToModules()`-helper die platte test-LU-data omzet naar de geneste modules-structuur.
+**Voorkomen door:** Als een store-property omgezet wordt van `ref` naar `computed`: direct alle tests controleren die die property direct assignen.
