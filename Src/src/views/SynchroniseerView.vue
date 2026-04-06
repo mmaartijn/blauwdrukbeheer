@@ -88,25 +88,53 @@
           </ul>
         </div>
 
-        <!-- Knop: Laatste versie ophalen -->
-        <div v-if="!checking" class="pt-1 flex items-center gap-3">
-          <button
-            @click="syncFromGitHub"
-            :disabled="syncing"
-            class="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-            :class="store.hasUpdates || neverSynced
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'"
-          >
-            {{ syncing ? 'Ophalen…' : 'Laatste versie ophalen' }}
-          </button>
-          <button
-            v-if="!syncing"
-            @click="runCheck"
-            class="text-xs text-gray-400 hover:text-gray-600 underline"
-          >
-            Opnieuw controleren
-          </button>
+        <!-- Knoppen -->
+        <div v-if="!checking" class="pt-1 space-y-3">
+          <div class="flex items-center gap-3">
+            <button
+              @click="syncFromGitHub"
+              :disabled="syncing || discarding"
+              class="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              :class="store.hasUpdates || neverSynced
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'"
+            >
+              {{ syncing ? 'Ophalen…' : 'Laatste versie ophalen' }}
+            </button>
+            <button
+              v-if="!syncing && !discarding"
+              @click="runCheck"
+              class="text-xs text-gray-400 hover:text-gray-600 underline"
+            >
+              Opnieuw controleren
+            </button>
+          </div>
+
+          <!-- Wijzigingen weggooien — alleen tonen als er dirty bestanden zijn -->
+          <div v-if="store.dirtyFiles.size > 0 && !syncing">
+            <div v-if="!confirmDiscard" class="flex items-center gap-2">
+              <button
+                @click="confirmDiscard = true"
+                class="text-xs text-red-500 hover:text-red-700 underline"
+              >
+                Lokale wijzigingen weggooien
+              </button>
+              <span class="text-xs text-gray-400">({{ store.dirtyFiles.size }} bestand{{ store.dirtyFiles.size === 1 ? '' : 'en' }} gewijzigd)</span>
+            </div>
+            <div v-else class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <span class="text-xs text-red-700 font-medium">Zeker weten? Lokale wijzigingen gaan permanent verloren.</span>
+              <button
+                @click="doDiscard"
+                :disabled="discarding"
+                class="text-xs font-semibold text-red-700 hover:text-red-900 underline disabled:opacity-50"
+              >
+                {{ discarding ? 'Bezig…' : 'Ja, weggooien' }}
+              </button>
+              <button @click="confirmDiscard = false" class="text-xs text-gray-500 hover:text-gray-700 underline">
+                Annuleren
+              </button>
+            </div>
+          </div>
         </div>
 
         <p v-if="syncError" class="text-sm text-red-600">{{ syncError }}</p>
@@ -138,9 +166,11 @@ const neverSynced  = computed(() => {
   return !shas || Object.keys(JSON.parse(shas)).length === 0
 })
 
-const checking  = ref(false)
-const syncing   = ref(false)
-const syncError = ref(null)
+const checking       = ref(false)
+const syncing        = ref(false)
+const discarding     = ref(false)
+const confirmDiscard = ref(false)
+const syncError      = ref(null)
 
 const statusCardClass = computed(() => {
   if (checking.value)                         return 'border-gray-200 bg-white'
@@ -165,6 +195,20 @@ async function syncFromGitHub() {
     syncError.value = e.message
   } finally {
     syncing.value = false
+  }
+}
+
+async function doDiscard() {
+  discarding.value = true
+  syncError.value = null
+  try {
+    await store.discardChanges()
+    confirmDiscard.value = false
+    await store.checkForUpdates()
+  } catch (e) {
+    syncError.value = e.message
+  } finally {
+    discarding.value = false
   }
 }
 

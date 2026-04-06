@@ -120,8 +120,19 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     return false
   }
 
-  // "Laatste versie ophalen" — wist bewust lokale wijzigingen en laadt vers van GitHub
+  // Haalt de nieuwste versie op van GitHub, maar bewaart lokale dirty wijzigingen.
   async function refreshFromGitHub() {
+    isLoading.value = true
+    hasError.value = false
+    await loadFromGitHub()
+    isLoading.value = false
+  }
+
+  // Gooit alle lokale wijzigingen weg en laadt de GitHub-versie volledig opnieuw.
+  // Alleen aanroepen na expliciete bevestiging door de gebruiker.
+  async function discardChanges() {
+    dirtyFiles.value = new Set()
+    localStorage.removeItem(CACHE_KEYS.DIRTY_FILES)
     isLoading.value = true
     hasError.value = false
     await loadFromGitHub({ discardDirty: true })
@@ -258,7 +269,7 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     periodes, portefeuilles, keywords, leeruitkomsten,
     isLoading, hasError,
     dirtyFiles, hasUpdates, updateStatus,
-    loadAll, refreshFromGitHub, checkForUpdates,
+    loadAll, refreshFromGitHub, discardChanges, checkForUpdates,
     addKeyword, updateKeyword, deleteKeyword,
     addLeeruitkomst, updateLeeruitkomst, deleteLeeruitkomst,
     generateId,
