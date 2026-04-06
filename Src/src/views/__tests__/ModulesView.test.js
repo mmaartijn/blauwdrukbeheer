@@ -7,6 +7,23 @@ import { useBlauwdrukStore } from '@/stores/blauwdruk'
 // RouterLink stub om vue-router buiten scope te houden
 const RouterLink = { template: '<a :href="to"><slot /></a>', props: ['to'] }
 
+/**
+ * Converteert een platte LU-lijst (met module- en periode-veld) naar de geneste
+ * modules-structuur die de store opslaat. Elke unieke (periode, module)-combinatie
+ * wordt één moduleobject met geneste leeruitkomsten.
+ */
+function luToModules(lus) {
+  const map = {}
+  for (const lu of lus) {
+    const key = `${lu.periode}::${lu.module}`
+    if (!map[key]) map[key] = { id: `mod-${key}`, naam: lu.module, periode: lu.periode, leeruitkomsten: [] }
+    map[key].leeruitkomsten.push(
+      Object.fromEntries(Object.entries(lu).filter(([k]) => k !== 'module' && k !== 'periode'))
+    )
+  }
+  return Object.values(map)
+}
+
 function mountView(leeruitkomsten = [], periodes = []) {
   const wrapper = mount(ModulesView, {
     global: {
@@ -15,7 +32,7 @@ function mountView(leeruitkomsten = [], periodes = []) {
     },
   })
   const store = useBlauwdrukStore()
-  store.leeruitkomsten = leeruitkomsten
+  store.modules = luToModules(leeruitkomsten)
   store.periodes = periodes
   return wrapper
 }
@@ -125,7 +142,7 @@ describe('modules (groupering per periode)', () => {
     expect(w.text()).toContain('Jaar 0')
   })
 
-  it('toont niets als er geen leeruitkomsten zijn', async () => {
+  it('toont niets als er geen modules zijn', async () => {
     const w = mountView([], [])
     await w.vm.$nextTick()
     expect(w.findAll('a').length).toBe(0)
