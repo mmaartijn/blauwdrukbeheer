@@ -13,6 +13,7 @@ function copyDataPlugin() {
     writeBundle(options) {
       const __dirname = path.dirname(fileURLToPath(import.meta.url))
       const src = path.join(__dirname, '..', 'Data')
+      if (!fs.existsSync(src)) return
       const dest = path.join(options.dir, 'data')
       fs.mkdirSync(dest, { recursive: true })
       for (const file of fs.readdirSync(src)) {

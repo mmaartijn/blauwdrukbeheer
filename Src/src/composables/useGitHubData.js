@@ -39,6 +39,7 @@ export function useGitHubData() {
     const url = new URL(`${repoBase()}/contents/${filePath}`)
     if (ref) url.searchParams.set('ref', ref)
     const res = await fetch(url.toString(), { headers: apiHeaders() })
+    if (res.status === 404) return { data: [], sha: null }
     if (!res.ok) throw new Error(`GitHub API fout bij ${filePath}: ${res.status}`)
     const body = await res.json()
     // atob geeft een binaire string met bytes als char-codes (Latin-1).
@@ -54,11 +55,11 @@ export function useGitHubData() {
 
   /**
    * Commit een JSON-bestand naar een branch via de GitHub Contents API.
-   * sha is de huidige blob-SHA van het bestand op die branch (vereist door GitHub).
+   * sha is de huidige blob-SHA van het bestand op die branch; null bij een nieuw bestand.
    */
   async function commitJsonFile(filePath, data, sha, branch, message) {
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
-    const body = { message, content, branch, sha }
+    const body = sha ? { message, content, branch, sha } : { message, content, branch }
     const res = await fetch(`${repoBase()}/contents/${filePath}`, {
       method: 'PUT',
       headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
