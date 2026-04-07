@@ -42,10 +42,8 @@ export const useBlauwdrukStore = defineStore('blauwdruk', () => {
     if (owner && repo) {
       await loadFromGitHub()
     } else {
-      // Geen repo geconfigureerd: probeer cache
-      if (!loadFromCache()) {
-        hasError.value = true
-      }
+      // Geen repo geconfigureerd: probeer cache, anders lege staat (geen fout)
+      loadFromCache()
     }
 
     isLoading.value = false

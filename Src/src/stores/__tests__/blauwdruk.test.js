@@ -300,10 +300,12 @@ describe('loadAll', () => {
     expect(store.dirtyFiles.has(DATA_FILES.KEYWORDS)).toBe(true)
   })
 
-  it('zet hasError als geen repo geconfigureerd en geen cache beschikbaar', async () => {
+  it('start met lege staat (geen fout) als geen repo geconfigureerd en geen cache beschikbaar', async () => {
     const store = useBlauwdrukStore()
     await store.loadAll()
-    expect(store.hasError).toBe(true)
+    expect(store.hasError).toBe(false)
+    expect(store.periodes).toEqual([])
+    expect(store.keywords).toEqual([])
   })
 
   it('laadt vanuit cache als repo niet geconfigureerd maar cache beschikbaar is', async () => {

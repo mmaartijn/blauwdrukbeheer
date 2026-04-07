@@ -52,8 +52,8 @@
       <span class="text-sm">Data laden…</span>
     </div>
 
-    <!-- Foutscherm bij laden -->
-    <div v-else-if="store.hasError" class="flex-1 flex items-start justify-center pt-16 px-4">
+    <!-- Foutscherm bij laden (niet op de instellingenpagina zelf) -->
+    <div v-else-if="store.hasError && route.path !== '/instellingen'" class="flex-1 flex items-start justify-center pt-16 px-4">
       <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
         <p class="text-red-700 font-semibold mb-1">Laden mislukt</p>
         <p class="text-red-500 text-sm mb-4">
@@ -76,10 +76,11 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useBlauwdrukStore } from '@/stores/blauwdruk'
 
 const store = useBlauwdrukStore()
+const route = useRoute()
 
 const navLinks = [
   { to: '/matrix', label: 'Matrix' },
