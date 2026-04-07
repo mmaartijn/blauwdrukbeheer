@@ -3,7 +3,7 @@ Project voor het beheren en visualiseren van de onderwijsblauwdruk HBO Informati
 
 ## Technologiestack
 - **Frontend:** Vue 3 (Composition API), Vite, Pinia (State Management), Tailwind CSS v4, Vue Router
-- **Data:** JSON bestanden in `/Data` (GitHub als bron/persistenz)
+- **Data:** JSON bestanden worden geladen/opgeslagen via GitHub API (aparte data-repo); `/Data` map bestaat niet meer in deze repo
 - **Synchronisatie:** GitHub API (`Octokit`-like implementatie in `Src/src/composables/useGitHubData.js`)
 
 ## Ontwikkelcommando's (in `/Src`)
@@ -18,7 +18,7 @@ Project voor het beheren en visualiseren van de onderwijsblauwdruk HBO Informati
   - `/src/components` – Herbruikbare componenten (Modals, Toggles)
 
 ## Datamodel (JSON)
-Zie `/Data` for de actuele bestanden. Hoofdentiteiten:
+Bestanden leven in de geconfigureerde GitHub data-repo. Hoofdentiteiten:
 - **periodes.json** – alle onderwijsperiodes incl. het jaar en welke blokken (bijv. 1 t/m 4) ze beslaan
 - **portefeuilles.json** – portefeuille-categorieën (ABV, Databases, etc.)
 - **keywords.json** – keywords per portefeuille+periode, met Bloom-niveau en toelichting
@@ -32,5 +32,5 @@ Zie `/Data` for de actuele bestanden. Hoofdentiteiten:
 
 ## Richtlijnen
 - **Tailwind v4:** Gebruik `@reference "tailwindcss";` bovenaan `<style>` blokken voor `@apply`.
-- **Data Opslag:** Wijzigingen in de store worden via `saveModules()`, `saveKeywords()` etc. weggeschreven naar `/Data/*.json` (lokaal) of gepusht naar GitHub.
+- **Data Opslag:** Wijzigingen in de store worden via `saveModules()`, `saveKeywords()` etc. gepusht naar de geconfigureerde GitHub data-repo via de GitHub API.
 - **Naamgeving:** Gebruik Nederlandse termen voor domein-gerelateerde velden (bijv. `leeruitkomsten`, `portefeuille`) en Engelse termen voor technische zaken (`id`, `label`, `settings`).
